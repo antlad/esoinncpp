@@ -1,0 +1,386 @@
+#include <assert.h>
+#include <limits>
+#include <set>
+#include <cmath>
+#include <algorithm>
+
+#include <fstream>
+
+#include "utils.h"
+#include "esoinn_node.h"
+
+namespace
+{
+
+static float vectorDistance(const std::vector<float>& x, const std::vector<float>& y)
+{
+	assert(x.size() == y.size());
+	size_t size = x.size();
+	const float* xP = x.data();
+	const float* yP = y.data();
+	float dist = 0;
+	for (size_t i = 0; i < size; ++i, ++xP, ++yP)
+	{
+		float a = *xP - *yP;
+		dist += a * a;
+	}
+	return sqrt(dist);
+}
+
+}
+
+void ESOINNNode::adaptWeight(float E1, float E2,
+							 const std::vector<float>& x)
+{
+	assert(x.size() == m_weight.size());
+	size_t size = x.size();
+	{
+		float* wPtr = m_weight.data();
+		const float* xPtr = x.data();
+		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
+		{
+			assert(!std::isinf(*wPtr));
+			*wPtr += E1 * (*xPtr - *wPtr);
+			assert(!std::isinf(*wPtr));
+		}
+	}
+
+	for (std::map<ESOINNNode*, uint16_t>::iterator it = m_links.begin();
+			it != m_links.end(); ++it)
+	{
+		ESOINNNode* n = it->first;
+		float* wPtr = n->m_weight.data();
+		const float* xPtr = x.data();
+
+		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
+		{
+			assert(!std::isinf(*wPtr));
+			*wPtr += E2 * ((*xPtr) - (*wPtr));
+			assert(!std::isinf(*wPtr));
+		}
+	}
+}
+
+float ESOINNNode::distance() const
+{
+	return m_dist;
+}
+
+std::vector<ESOINNNode*> ESOINNNode::overlapedList()
+{
+	std::vector<ESOINNNode*> result;
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+
+		if (node->m_subClass != m_subClass)
+			result.push_back(node);
+	}
+	return result;
+}
+
+void ESOINNNode::mergeWithNewSubClass(int32_t newSubClass)
+{
+	if (newSubClass == m_subClass)
+		return;
+
+	int32_t oldSubClass = m_subClass;
+	m_subClass = newSubClass;
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+		if (node->m_subClass != oldSubClass)
+			continue;
+
+		node->mergeWithNewSubClass(newSubClass);
+	}
+}
+
+void ESOINNNode::splitNoise()
+{
+	for (auto it = m_links.begin(); it != m_links.end();)
+	{
+		ESOINNNode* node = it->first;
+		assert(node);
+		assert(node->m_subClass != -1);
+		if (node->m_subClass != m_subClass ||
+				node->m_realLabel != m_realLabel)
+		{
+			node->removeLink(this);
+			m_links.erase(it++);
+		}
+		else
+			++it;
+	}
+}
+
+void ESOINNNode::destroy()
+{
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+		node->removeLink(this);
+	}
+}
+
+ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
+	: m_dist(0)
+	, m_s(0)
+	, m_density(0)
+	, m_subClass(-1)
+	, m_realLabel(-1)
+	, m_winCount(0)
+	, m_id(id)
+	, m_weight(weights)
+{
+}
+
+ESOINNNode::ESOINNNode()
+	: m_dist(0)
+	, m_s(0)
+	, m_density(0)
+	, m_subClass(-1)
+	, m_realLabel(-1)
+	, m_winCount(0)
+	, m_id(0)
+{
+}
+
+void ESOINNNode::incrementLinksAge()
+{
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		++(it->second);
+		ESOINNNode* n = it->first;
+		n->m_links[this] += 1;
+	}
+}
+
+void ESOINNNode::clearOldLinks(int maxAge)
+{
+	auto it = m_links.begin();
+	while (it != m_links.end())
+	{
+		if ((*it).second > maxAge)
+		{
+			it->first->removeLink(this);
+			it = m_links.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
+const std::vector<float>& ESOINNNode::weights() const
+{
+	return m_weight;
+}
+
+void ESOINNNode::addLink(ESOINNNode* n)
+{
+	m_links[n] = 0;
+}
+
+void ESOINNNode::removeLink(ESOINNNode* n)
+{
+	m_links.erase(n);
+}
+
+uint32_t ESOINNNode::winCount()
+{
+	return m_winCount;
+}
+
+void ESOINNNode::incrementWinCount()
+{
+	++m_winCount;
+}
+
+void ESOINNNode::procInput(const std::vector<float>& x)
+{
+	m_dist = vectorDistance(m_weight, x);
+}
+
+std::size_t ESOINNNode::linksCount() const
+{
+	return m_links.size();
+}
+
+float ESOINNNode::distanceTo(ESOINNNode* n) const
+{
+	return vectorDistance(m_weight, n->m_weight);
+}
+
+float ESOINNNode::maxDistanceToNeibs() const
+{
+	float maxDist = std::numeric_limits<float>::min();
+
+	for (auto it = m_links.begin();
+			it != m_links.end(); ++it)
+	{
+		const ESOINNNode* n = it->first;
+		float dist = vectorDistance(m_weight, n->m_weight);
+		if (dist > maxDist)
+			maxDist = dist;
+	}
+
+	return maxDist;
+}
+
+float ESOINNNode::meanDistanceToNeibs() const
+{
+	if (m_links.empty())
+		return 0;
+
+	float mean = 0;
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		const ESOINNNode* n = it->first;
+		mean += vectorDistance(m_weight, n->m_weight);
+	}
+
+	mean /= m_links.size();
+
+	return mean;
+}
+
+
+void ESOINNNode::setSubClass(int32_t subClass)
+{
+	m_subClass = subClass;
+}
+
+int32_t ESOINNNode::subClass() const
+{
+	return m_subClass;
+}
+
+void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
+{
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+		if (node->subClass() == -1 && node->m_density < apex->m_density)
+		{
+			node->m_subClass = subClass;
+			node->setNeibsSubClass(subClass, node);
+		}
+	}
+}
+
+void ESOINNNode::setRealLabel(int32_t realLabel)
+{
+	m_realLabel = realLabel;
+}
+
+int ESOINNNode::realLabel() const
+{
+	return m_realLabel;
+}
+
+double ESOINNNode::density() const
+{
+	return m_density;
+}
+
+void ESOINNNode::updateDensity(float meanDist)
+{
+	assert(m_winCount);
+	m_s += 1. / ((1 + meanDist) * (1 + meanDist));
+	m_density = m_s / float(m_winCount);
+	assert(!std::isnan(m_density));
+}
+
+void ESOINNNode::saveToStream(std::ostream &os)
+{
+	ut::write(os, m_dist);
+	ut::write(os, m_s);
+	ut::write(os, m_density);
+	ut::write(os, m_subClass);
+	ut::write(os, m_realLabel);
+	ut::write(os, m_winCount);
+	ut::write(os, m_id);
+
+	ut::write(os, m_weight.size());
+	for (float d : m_weight)
+	{
+		ut::write(os, d);
+	}
+}
+
+void ESOINNNode::saveLinksToStream(std::ostream &stream)
+{
+	ut::write(stream , m_links.size());
+	for (const auto & a : m_links)
+	{
+		ut::write(stream, a.first->m_id);
+		ut::write(stream, a.second);
+	}
+}
+
+void ESOINNNode::loadLinksFromStream(std::istream &fs, std::map<uint64_t, ESOINNNode*> &neurons)
+{
+	std::size_t size;
+	ut::read(fs, size);
+	for (std::size_t i = 0; i < size; ++i)
+	{
+        uint64_t id;
+		uint16_t age;
+		ut::read(fs, id);
+		ut::read(fs, age);
+		m_links[neurons[id]] = age;
+	}
+}
+
+uint64_t ESOINNNode::nodeId() const
+{
+	return m_id;
+}
+
+bool ESOINNNode::operator==(const ESOINNNode &other) const
+{
+	bool firstResult = m_dist == other.m_dist &&
+					   m_s == other.m_s &&
+					   m_density == other.m_density &&
+					   m_subClass == other.m_subClass &&
+					   m_realLabel == other.m_realLabel &&
+					   m_winCount == other.m_winCount &&
+					   m_id == other.m_id &&
+					   m_weight == other.m_weight;
+
+	if (!firstResult)
+		return false;
+	auto it1 = m_links.begin();
+	auto it2 = other.m_links.begin();
+
+	for (; it1 != m_links.end() && it2 != other.m_links.end(); ++it1, ++it2)
+	{
+		const ESOINNNode* e1 = (*it1).first;
+		const ESOINNNode* e2 = (*it2).first;
+
+		if (e1->m_id != e2->m_id || (*it1).second != (*it2).second)
+			return false;
+	}
+	return true;
+}
+
+void ESOINNNode::loadFromStream(std::istream & fs)
+{
+	ut::read(fs, m_dist);
+	ut::read(fs, m_s);
+	ut::read(fs, m_density);
+	ut::read(fs, m_subClass);
+	ut::read(fs, m_realLabel);
+	ut::read(fs, m_winCount);
+	ut::read(fs, m_id);
+
+	std::size_t size;
+	ut::read(fs, size);
+	m_weight.resize(size);
+	for (int i = 0; i < size; ++i)
+	{
+		ut::read(fs, m_weight[i]);
+	}
+}
