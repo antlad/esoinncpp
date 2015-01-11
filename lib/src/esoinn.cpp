@@ -37,6 +37,9 @@ public:
 	// Returning count of Esoinn nodes
 	size_t size() const;
 
+    // Return sublasses count
+    size_t subClassCount() const;
+
 	// Loading Esoinn map from file
 	void loadFromPath(const std::string& abthPath);
 
@@ -192,7 +195,12 @@ void ESOINN::classificate() const
 
 size_t ESOINN::size() const
 {
-	return d->size();
+    return d->size();
+}
+
+size_t ESOINN::subClassesCount() const
+{
+    return d->subClassCount();
 }
 
 void ESOINN::Private::classificate()
@@ -605,7 +613,17 @@ void ESOINN::Private::saveToPath(const std::string &abthPath) const
 
 size_t ESOINN::Private::size() const
 {
-	return m_neurons.size();
+    return m_neurons.size();
+}
+
+size_t ESOINN::Private::subClassCount() const
+{
+    std::set<int32_t> subClasses;
+    for (const ESOINNNodePtr& n : m_neurons)
+    {
+        subClasses.insert(n->subClass());
+    }
+    return subClasses.size();
 }
 
 void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const

@@ -57,6 +57,11 @@ public:
 	 */
 	size_t size() const;
 
+    /*! Returning count of subclasses
+     * \return Count of subclasses
+     */
+    size_t subClassesCount() const;
+
 private:
 	class Private;
 	std::shared_ptr<Private> d; ///< Private part of class

@@ -91,14 +91,14 @@ void test(ESOINN & esoinn, const std::string & dataFolder)
 			normData[i] = float(data[i]) / (float)std::numeric_limits<unsigned char>::max();
 		}
 
-		uint64_t label = esoinn.calcInput(normData);
+        uint64_t label = esoinn.calcInput(normData);
 		if (label != digit)
 			++fail;
 
 		++t;
 		if ((t % 200) == 0)
 		{
-			std::cout << "count = " << t << "\n";
+            std::cout << "count = " << t << "\n";
 			std::cout.flush();
 		}
 
@@ -146,9 +146,14 @@ void predict(ESOINN & esoinn, const std::string & dataFolder)
 		{
 			normData[i] = float(data[i]) / (float)std::numeric_limits<unsigned char>::max();
 		}
-		uint64_t label = esoinn.calcInput(normData);
+        uint64_t label = esoinn.calcInput(normData, false);
 		fso << std::to_string(++t) << "," << std::to_string(label) << "\n";
 
+        if ((t % 200) == 0)
+        {
+            std::cout << "prediction count = " << t << "\n";
+            std::cout.flush();
+        }
 #ifdef CHECK_ONLY
 		if ((t % CHECK_COUNT) == 0)
 			break;
@@ -174,7 +179,7 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.0001f, 0.9f, 500, 1000);
+        ESOINN esoinn(28 * 28, 0.001f, 0.85f, 1000, 2000);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{
@@ -185,6 +190,7 @@ int main(int argc, char *argv[])
 
 		start = std::chrono::system_clock::now();
 		train(esoinn, dataPathString);
+        std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
 		test(esoinn, dataPathString);
 		predict(esoinn, dataPathString);
 		end = std::chrono::system_clock::now();
