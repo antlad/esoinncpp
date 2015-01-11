@@ -27,5 +27,4 @@
 *.out
 *.app
 
-CMakeLists.txt
 CMakeLists.txt.user
