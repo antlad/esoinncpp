@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project (esoinn)
+project (esoinncpp)
 
 set(ESOINN_SRC
 src/esoinn.cpp
@@ -28,12 +28,12 @@ if (OPENMP_FOUND)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-add_library(esoinncpp ${LIB_TYPE} ${ESOINN_SRC} ${INCLUDE_LIST} ${CMakeConfig_LIST})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${ESOINN_SRC} ${INCLUDE_LIST} ${CMakeConfig_LIST})
 
-install(FILES ${INCLUDE_LIST} DESTINATION include/esoinncpp)
-install(FILES ${CMakeConfig_LIST} DESTINATION lib/cmake/esoinncpp)
+install(FILES ${INCLUDE_LIST} DESTINATION include/${PROJECT_NAME})
+install(FILES ${CMakeConfig_LIST} DESTINATION lib/cmake/${PROJECT_NAME})
 
-install(TARGETS esoinncpp
+install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

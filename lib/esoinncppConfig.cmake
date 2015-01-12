@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 2.8)
 set(esoinncpp_INCLUDE_DIRS ${PREFIX}/include/esoinncpp)
 
 if (BUILD_SHARED_LIBS)
