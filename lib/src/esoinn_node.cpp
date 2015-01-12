@@ -128,7 +128,7 @@ ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
 	, m_s(0)
 	, m_density(0)
 	, m_subClass(-1)
-	, m_realLabel(-1)
+    , m_realLabel(UNKNOW_REAL)
 	, m_winCount(0)
 	, m_id(id)
 	, m_weight(weights)
@@ -275,7 +275,7 @@ void ESOINNNode::setRealLabel(int32_t realLabel)
 	m_realLabel = realLabel;
 }
 
-int ESOINNNode::realLabel() const
+int32_t ESOINNNode::realLabel() const
 {
 	return m_realLabel;
 }

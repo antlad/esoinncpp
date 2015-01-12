@@ -7,6 +7,8 @@
 #include <memory>
 #include <cstdint>
 
+const int32_t UNKNOW_REAL_LABEL = std::numeric_limits<in32_t>::min();
+
 /*! Esoinn node class
  */
 class ESOINNNode
@@ -91,7 +93,7 @@ public:
 	/*! Return real label of node
 	 * \return Real label of node
 	 */
-	int realLabel() const;
+    int32_t realLabel() const;
 
 	/*! Return current density of node
 	 * \return Current density
