@@ -7,7 +7,7 @@
 #include <memory>
 #include <cstdint>
 
-const int32_t UNKNOW_REAL_LABEL = std::numeric_limits<in32_t>::min();
+const int32_t UNKNOW_LABEL = std::numeric_limits<int32_t>::min();
 
 /*! Esoinn node class
  */
@@ -177,6 +177,7 @@ public:
 	void destroy();
 
 	/*! Compare operator
+     * Only for debug use
 	 * \param other Other node
 	 * \return True if same
 	 */

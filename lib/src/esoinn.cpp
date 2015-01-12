@@ -51,10 +51,10 @@ public:
 						int32_t realLabel);
 
 	// Simply calc vector and return prediction of label
-	uint32_t calcInput(const std::vector<float>& x) const;
+    int32_t calcInput(const std::vector<float>& x) const;
 
 	// Simply calc vector and return prediction of label and try to learn
-	uint32_t calcInputAndLearn(const std::vector<float>& x);
+    int32_t calcInputAndLearn(const std::vector<float>& x);
 
 	/*! Start classificate procedure
 	 */
@@ -165,7 +165,7 @@ ESOINN::ESOINN(size_t inputSize, float c1, float c2, int maxAge, int iterationTh
 	std::srand((unsigned int)std::time(0));
 }
 
-int ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
+int32_t ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
 {
 	if (!learnData)
 		return d->calcInput(x);
@@ -173,7 +173,7 @@ int ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
 		return d->calcInputAndLearn(x);
 }
 
-void ESOINN::learnNextInput(const std::vector<float> &x, int realLabel) const
+void ESOINN::learnNextInput(const std::vector<float> &x, int32_t realLabel) const
 {
 	d->learnNextInput(x, realLabel);
 }
@@ -193,12 +193,12 @@ void ESOINN::classificate() const
 	d->classificate();
 }
 
-size_t ESOINN::size() const
+std::size_t ESOINN::size() const
 {
     return d->size();
 }
 
-size_t ESOINN::subClassesCount() const
+std::size_t ESOINN::subClassesCount() const
 {
     return d->subClassCount();
 }
@@ -314,7 +314,7 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-	if (w1->realLabel() != w2->realLabel())
+    if (w1->realLabel() != w2->realLabel() && w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
 		return false;
 
 	if (w1->subClass() == -1 || w2->subClass() == -1) return true;
@@ -354,7 +354,7 @@ double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-	if (a->realLabel() != b->realLabel())
+    if (a->realLabel() != b->realLabel() && a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
 		return false;
 
 	int64_t A = a->subClass();
@@ -445,7 +445,7 @@ const std::vector<ESOINNNodePtr> &ESOINN::Private::neurons() const
 	return m_neurons;
 }
 
-uint32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
+int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 {
 	procInput(x);
 
@@ -456,7 +456,7 @@ uint32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 	return n1->realLabel();
 }
 
-uint32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
+int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 {
 	procInput(x);
 
@@ -611,12 +611,12 @@ void ESOINN::Private::saveToPath(const std::string &abthPath) const
 	}
 }
 
-size_t ESOINN::Private::size() const
+std::size_t ESOINN::Private::size() const
 {
     return m_neurons.size();
 }
 
-size_t ESOINN::Private::subClassCount() const
+std::size_t ESOINN::Private::subClassCount() const
 {
     std::set<int32_t> subClasses;
     for (const ESOINNNodePtr& n : m_neurons)

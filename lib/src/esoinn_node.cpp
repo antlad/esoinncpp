@@ -103,8 +103,10 @@ void ESOINNNode::splitNoise()
 		ESOINNNode* node = it->first;
 		assert(node);
 		assert(node->m_subClass != -1);
-		if (node->m_subClass != m_subClass ||
-				node->m_realLabel != m_realLabel)
+        if (node->m_subClass != m_subClass ||
+                (node->m_realLabel != m_realLabel &&
+                 node->m_realLabel != UNKNOW_LABEL &&
+                 m_realLabel != UNKNOW_LABEL))
 		{
 			node->removeLink(this);
 			m_links.erase(it++);
@@ -128,7 +130,7 @@ ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
 	, m_s(0)
 	, m_density(0)
 	, m_subClass(-1)
-    , m_realLabel(UNKNOW_REAL)
+    , m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(id)
 	, m_weight(weights)
@@ -140,7 +142,7 @@ ESOINNNode::ESOINNNode()
 	, m_s(0)
 	, m_density(0)
 	, m_subClass(-1)
-	, m_realLabel(-1)
+    , m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(0)
 {
@@ -345,7 +347,7 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
 					   m_s == other.m_s &&
 					   m_density == other.m_density &&
 					   m_subClass == other.m_subClass &&
-					   m_realLabel == other.m_realLabel &&
+                       (m_realLabel == other.m_realLabel) &&
 					   m_winCount == other.m_winCount &&
 					   m_id == other.m_id &&
 					   m_weight == other.m_weight;

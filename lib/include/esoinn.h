@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <stdint.h>
 
 #include "esoinn_export.h"
 
@@ -28,14 +29,14 @@ public:
 	 * \param learnData Try to learn data
 	 * \return Prediction of label
 	 */
-	int calcInput(const std::vector<float>& x, bool learnData = false) const;
+    int32_t calcInput(const std::vector<float>& x, bool learnData = false) const;
 
 	/*! Teach Esoinn new data
 	 * \param x Input vector
 	 * \param realLabel Real label
 	 */
 	void learnNextInput(const std::vector<float>& x,
-						int realLabel) const;
+                        int32_t realLabel) const;
 
 	/*! Loading Esoinn map from file
 	 * \param abthPath Absolute file path
@@ -55,12 +56,12 @@ public:
 	/*! Returning count of Esoinn nodes
 	 * \return Count of of Esoinn nodes
 	 */
-	size_t size() const;
+    std::size_t size() const;
 
     /*! Returning count of subclasses
      * \return Count of subclasses
      */
-    size_t subClassesCount() const;
+    std::size_t subClassesCount() const;
 
 private:
 	class Private;
