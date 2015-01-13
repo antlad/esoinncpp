@@ -13,11 +13,19 @@ include/esoinn_export.h
 )
 
 set(CMakeConfig_LIST esoinncppConfig.cmake)
+option(PNG_EXPORT_SUPPORT "Build with png export support" OFF)
+
+if(PNG_EXPORT_SUPPORT)
+    find_package(PNG)
+    if(PNG_FOUND)
+        add_definitions(-DBUILD_WITH_PNG_EXPORT_SUPPORT)
+    endif()
+endif()
 
 add_definitions(-DESOINN_EXPORT_DLL)
 
 if (NOT MSVC)
-add_definitions(-std=c++11)
+    add_definitions(-std=c++11)
 endif()
 
 include_directories(include/)

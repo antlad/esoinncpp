@@ -9,6 +9,11 @@
 #include "utils.h"
 #include "esoinn_node.h"
 
+#include <png++/png.hpp>
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+
+#endif
+
 namespace
 {
 
@@ -32,10 +37,10 @@ static float vectorDistance(const std::vector<float>& x, const std::vector<float
 void ESOINNNode::adaptWeight(float E1, float E2,
 							 const std::vector<float>& x)
 {
-	assert(x.size() == m_weight.size());
+    assert(x.size() == m_weights.size());
 	size_t size = x.size();
 	{
-		float* wPtr = m_weight.data();
+        float* wPtr = m_weights.data();
 		const float* xPtr = x.data();
 		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
 		{
@@ -49,7 +54,7 @@ void ESOINNNode::adaptWeight(float E1, float E2,
 			it != m_links.end(); ++it)
 	{
 		ESOINNNode* n = it->first;
-		float* wPtr = n->m_weight.data();
+        float* wPtr = n->m_weights.data();
 		const float* xPtr = x.data();
 
 		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
@@ -133,7 +138,7 @@ ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
     , m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(id)
-	, m_weight(weights)
+    , m_weights(weights)
 {
 }
 
@@ -177,7 +182,7 @@ void ESOINNNode::clearOldLinks(int maxAge)
 
 const std::vector<float>& ESOINNNode::weights() const
 {
-	return m_weight;
+    return m_weights;
 }
 
 void ESOINNNode::addLink(ESOINNNode* n)
@@ -202,7 +207,7 @@ void ESOINNNode::incrementWinCount()
 
 void ESOINNNode::procInput(const std::vector<float>& x)
 {
-	m_dist = vectorDistance(m_weight, x);
+    m_dist = vectorDistance(m_weights, x);
 }
 
 std::size_t ESOINNNode::linksCount() const
@@ -212,7 +217,7 @@ std::size_t ESOINNNode::linksCount() const
 
 float ESOINNNode::distanceTo(ESOINNNode* n) const
 {
-	return vectorDistance(m_weight, n->m_weight);
+    return vectorDistance(m_weights, n->m_weights);
 }
 
 float ESOINNNode::maxDistanceToNeibs() const
@@ -223,7 +228,7 @@ float ESOINNNode::maxDistanceToNeibs() const
 			it != m_links.end(); ++it)
 	{
 		const ESOINNNode* n = it->first;
-		float dist = vectorDistance(m_weight, n->m_weight);
+        float dist = vectorDistance(m_weights, n->m_weights);
 		if (dist > maxDist)
 			maxDist = dist;
 	}
@@ -240,7 +245,7 @@ float ESOINNNode::meanDistanceToNeibs() const
 	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 	{
 		const ESOINNNode* n = it->first;
-		mean += vectorDistance(m_weight, n->m_weight);
+        mean += vectorDistance(m_weights, n->m_weights);
 	}
 
 	mean /= m_links.size();
@@ -268,6 +273,11 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
 		{
 			node->m_subClass = subClass;
 			node->setNeibsSubClass(subClass, node);
+            if (apex->realLabel() != UNKNOW_LABEL)
+            {
+                node->setRealLabel(apex->realLabel());
+                assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
+            }
 		}
 	}
 }
@@ -305,8 +315,8 @@ void ESOINNNode::saveToStream(std::ostream &os)
 	ut::write(os, m_winCount);
 	ut::write(os, m_id);
 
-	ut::write(os, m_weight.size());
-	for (float d : m_weight)
+    ut::write(os, m_weights.size());
+    for (float d : m_weights)
 	{
 		ut::write(os, d);
 	}
@@ -350,7 +360,7 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
                        (m_realLabel == other.m_realLabel) &&
 					   m_winCount == other.m_winCount &&
 					   m_id == other.m_id &&
-					   m_weight == other.m_weight;
+                       m_weights == other.m_weights;
 
 	if (!firstResult)
 		return false;
@@ -365,7 +375,33 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
 		if (e1->m_id != e2->m_id || (*it1).second != (*it2).second)
 			return false;
 	}
-	return true;
+    return true;
+}
+
+void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
+{
+    if ((rows * cols) != m_weights.size())
+        throw std::runtime_error("Invalid rows/cols count!");
+//        std::string fnm(folderPath);
+//        std::string name = "RL=" + std::to_string(n->realLabel()) + "_";
+//        name += "SL=" + std::to_string(n->subClass()) + "_";
+//        name += std::to_string(i);
+//        name += ".png";
+
+  //  fnm.append(path);
+    png::image<png::ga_pixel> image;
+    image.resize(rows, cols);
+
+    int p = 0;
+    for (const float& w : m_weights)
+    {
+        unsigned char c = w * 255;
+        int row = p / rows;
+        int col = p % cols;
+        image.set_pixel(col, row, c);
+        ++p;
+    }
+    image.write(path);
 }
 
 void ESOINNNode::loadFromStream(std::istream & fs)
@@ -380,9 +416,9 @@ void ESOINNNode::loadFromStream(std::istream & fs)
 
 	std::size_t size;
 	ut::read(fs, size);
-	m_weight.resize(size);
+    m_weights.resize(size);
 	for (int i = 0; i < size; ++i)
 	{
-		ut::read(fs, m_weight[i]);
+        ut::read(fs, m_weights[i]);
 	}
 }

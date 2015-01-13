@@ -63,6 +63,14 @@ public:
      */
     std::size_t subClassesCount() const;
 
+    /*! Save main apexes to folder
+     * Debuging function
+     * \param path Path to png file
+     * \param rows rows count
+     * \param cols cols count
+     */
+    void saveApexesToFolder(const std::string & folderPath, int rows, int cols) const;
+
 private:
 	class Private;
 	std::shared_ptr<Private> d; ///< Private part of class

@@ -146,7 +146,7 @@ void predict(ESOINN & esoinn, const std::string & dataFolder)
 		{
 			normData[i] = float(data[i]) / (float)std::numeric_limits<unsigned char>::max();
 		}
-        uint64_t label = esoinn.calcInput(normData, false);
+        uint64_t label = esoinn.calcInput(normData, true);
 		fso << std::to_string(++t) << "," << std::to_string(label) << "\n";
 
         if ((t % 200) == 0)
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.001f, 1.0f, 50, 100);
+        ESOINN esoinn(28 * 28, 0.0001f, 1.0f, 50, 200);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{

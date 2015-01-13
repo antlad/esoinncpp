@@ -59,6 +59,10 @@ public:
 	/*! Start classificate procedure
 	 */
 	void classificate();
+
+    /*! Save main apexes to folder
+     */
+    void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
 private:
 
 	/*! Part of learning process
@@ -203,10 +207,20 @@ std::size_t ESOINN::subClassesCount() const
     return d->subClassCount();
 }
 
+void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
+{
+
+}
+
 void ESOINN::Private::classificate()
 {
 	makeSubClasses();
-	clearNoiseProc();
+    clearNoiseProc();
+}
+
+void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
+{
+
 }
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const

@@ -183,6 +183,14 @@ public:
 	 */
 	bool operator==(const ESOINNNode & other) const;
 
+    /*! Save weights into png file
+     * Debuging function
+     * \param path Path to png file
+     * \param rows rows count
+     * \param cols cols count
+     */
+    void saveToPng(const std::string & path, int rows, int cols) const;
+
 private:
 	float m_dist;								///< Current distance to input vector
 	double m_s;									///< Current value of calculating mean density
@@ -191,8 +199,8 @@ private:
 	int32_t m_realLabel;						///< Real label of node
 	uint32_t m_winCount;						///< Win count of node
 	uint64_t m_id;								///< Id of node
-	std::vector<float> m_weight;				///< Weight of node
-	std::map<ESOINNNode*, uint16_t> m_links;	///< Links woth other nodes
+    std::vector<float> m_weights;				///< Weight of node
+    std::map<ESOINNNode*, uint16_t> m_links;	///< Links with other nodes
 };
 
 typedef std::shared_ptr<ESOINNNode> ESOINNNodePtr;
