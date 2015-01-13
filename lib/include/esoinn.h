@@ -63,6 +63,7 @@ public:
      */
     std::size_t subClassesCount() const;
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
     /*! Save main apexes to folder
      * Debuging function
      * \param path Path to png file
@@ -70,6 +71,7 @@ public:
      * \param cols cols count
      */
     void saveApexesToFolder(const std::string & folderPath, int rows, int cols) const;
+#endif
 
 private:
 	class Private;

@@ -9,9 +9,8 @@
 #include "utils.h"
 #include "esoinn_node.h"
 
-#include <png++/png.hpp>
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
-
+#include <png++/png.hpp>
 #endif
 
 namespace
@@ -378,6 +377,7 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
     return true;
 }
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
 {
     if ((rows * cols) != m_weights.size())
@@ -403,6 +403,7 @@ void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
     }
     image.write(path);
 }
+#endif
 
 void ESOINNNode::loadFromStream(std::istream & fs)
 {

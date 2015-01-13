@@ -183,6 +183,7 @@ public:
 	 */
 	bool operator==(const ESOINNNode & other) const;
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
     /*! Save weights into png file
      * Debuging function
      * \param path Path to png file
@@ -190,6 +191,7 @@ public:
      * \param cols cols count
      */
     void saveToPng(const std::string & path, int rows, int cols) const;
+#endif
 
 private:
 	float m_dist;								///< Current distance to input vector

@@ -12,6 +12,11 @@
 #include "esoinn_node.h"
 #include "utils.h"
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+#include <boost/filesystem.hpp>
+namespace bf = boost::filesystem;
+#endif
+
 /*! Esoinn private class
  */
 class ESOINN::Private
@@ -207,10 +212,12 @@ std::size_t ESOINN::subClassesCount() const
     return d->subClassCount();
 }
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
-
+    d->saveApexesToFolder(folderPath, rows, cols);
 }
+#endif
 
 void ESOINN::Private::classificate()
 {
@@ -218,10 +225,42 @@ void ESOINN::Private::classificate()
     clearNoiseProc();
 }
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
+    if (folderPath.empty())
+        throw std::invalid_argument("folderPath is empty!");
 
+    std::map<int32_t, ESOINNNode*> subs;
+
+//    for (const ESOINNNodePtr & n : m_neurons)
+//    {
+//        auto it = subs.find(n->subClass());
+//        if (it == subs.end())
+//        {
+//            subs.insert(n->subClass(), n.get());
+//            continue;
+//        }
+//        else
+//        {
+//            ESOINNNode * nPtr = *it;
+//            if (nPtr->density() < n->density())
+//                subs[n->subClass()] = n.get();
+//        }
+//    }
+
+    //std::string path(folderPath);
+
+    //if (path.back() != '\\')
+//    for (auto it = subs.begin(); it < subs.end(); ++it)
+//    {
+//        ESOINNNode * n = (*it).second;
+
+//        //n->saveToPng();
+
+//    }
 }
+#endif
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
