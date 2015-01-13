@@ -227,6 +227,12 @@ void ESOINN::Private::classificate()
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+struct ApexDesc
+{
+    ESOINNNode* apex;
+    std::list<ESOINNNode*> area;
+};
+
 void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
     if (folderPath.empty())
@@ -234,32 +240,71 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
     if (!bf::exists(folderPath))
         throw std::invalid_argument(str(boost::format("folder %1 doesn't exists!") % folderPath));
 
-    std::map<int32_t, ESOINNNode*> subs;
+    std::map<int32_t, ApexDesc> subs;
 
     for (const ESOINNNodePtr & n : m_neurons)
     {
         auto it = subs.find(n->subClass());
         if (it == subs.end())
         {
-            subs[n->subClass()] = n.get();
+            subs[n->subClass()].apex = n.get();
             continue;
         }
         else
         {
-            ESOINNNode * nPtr = (*it).second;
-            if (nPtr->density() < n->density())
-                subs[n->subClass()] = n.get();
+            ApexDesc & aDesc = (*it).second;
+            if (aDesc.apex->density() < n->density())
+            {
+                ESOINNNode* a = aDesc.apex;
+                aDesc.apex = n.get();
+                aDesc.area.push_back(a);
+            }
+            else
+            {
+                aDesc.area.push_back(n.get());
+            }
         }
     }
 
-    bf::path p(folderPath);
+    bf::path dataFolder(folderPath);
+    dataFolder = dataFolder / bf::path("png");
+    if (bf::exists(dataFolder))
+    {
+        if (!bf::remove_all(dataFolder))
+            throw std::runtime_error("Can't remove png directory!");
+    }
+    if (!bf::create_directory(dataFolder))
+        throw std::runtime_error("Can't create dirrectory for png!");
 
     for (auto it = subs.begin(); it != subs.end(); ++it)
     {
-        ESOINNNode * n = (*it).second;
-        assert(n);
-        std::string f = (boost::format("s_%d_d_%d.png") % n->subClass() % n->realLabel()).str();
-        n->saveToPng((p / bf::path(f)).string(), rows, cols);
+        ApexDesc & aDesc = (*it).second;
+
+        auto saveToPngFunc = [&](const ESOINNNode* n, const bf::path & folder, int i)
+        {
+            std::string f = (boost::format("s_%d_d_%d_i_%d.png")
+                             % n->subClass()
+                             % n->realLabel()
+                             % i).str();
+            n->saveToPng((folder / bf::path(f)).string(), rows, cols);
+        };
+
+        saveToPngFunc(aDesc.apex, dataFolder, 0);
+
+
+        if (!aDesc.area.empty())
+        {
+            bf::path subFolder((boost::format("s_%d_d_%d")
+                                % aDesc.apex->subClass()
+                                % aDesc.apex->realLabel()).str());
+            if (!bf::create_directory(dataFolder / subFolder))
+                throw std::runtime_error("Can't create dirrectory for sub class images!");
+            int i = 0;
+            for (const ESOINNNode* n : aDesc.area)
+            {
+                saveToPngFunc(n, dataFolder / subFolder, ++i);
+            }
+        }
     }
 }
 #endif

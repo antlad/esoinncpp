@@ -94,7 +94,7 @@ void test(ESOINN & esoinn, const std::string & dataFolder)
 			normData[i] = float(data[i]) / (float)std::numeric_limits<unsigned char>::max();
 		}
 
-        uint64_t label = esoinn.calcInput(normData);
+        uint64_t label = esoinn.calcInput(normData, false);
 		if (label != digit)
 			++fail;
 
@@ -185,25 +185,28 @@ int main(int argc, char *argv[])
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{
-			esoinn.loadFromPath(savePath.string());
-		}
+            esoinn.loadFromPath(savePath.string());
+            esoinn.saveApexesToFolder(dataPathString, 28, 28);
+            return 0;
+
+        }
 
 		std::chrono::time_point<std::chrono::system_clock> start, end;
 
 		start = std::chrono::system_clock::now();
 		train(esoinn, dataPathString);
-        esoinn.saveApexesToFolder(dataPathString, 28, 28);
-
-        return 0;
+        predict(esoinn, dataPathString);//cheating..
 
         std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
+
 		test(esoinn, dataPathString);
 		predict(esoinn, dataPathString);
 		end = std::chrono::system_clock::now();
 
+        esoinn.saveApexesToFolder(dataPathString, 28, 28);
+
 		uint64_t elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>
 							  (end-start).count();
-
 
 		std::cout << "calc done in " << elapsed_seconds << "\n";
 		esoinn.saveToPath(savePath.string());
