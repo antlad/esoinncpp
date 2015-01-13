@@ -14,6 +14,7 @@
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 namespace bf = boost::filesystem;
 #endif
 
@@ -230,35 +231,36 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 {
     if (folderPath.empty())
         throw std::invalid_argument("folderPath is empty!");
+    if (!bf::exists(folderPath))
+        throw std::invalid_argument(str(boost::format("folder %1 doesn't exists!") % folderPath));
 
     std::map<int32_t, ESOINNNode*> subs;
 
-//    for (const ESOINNNodePtr & n : m_neurons)
-//    {
-//        auto it = subs.find(n->subClass());
-//        if (it == subs.end())
-//        {
-//            subs.insert(n->subClass(), n.get());
-//            continue;
-//        }
-//        else
-//        {
-//            ESOINNNode * nPtr = *it;
-//            if (nPtr->density() < n->density())
-//                subs[n->subClass()] = n.get();
-//        }
-//    }
+    for (const ESOINNNodePtr & n : m_neurons)
+    {
+        auto it = subs.find(n->subClass());
+        if (it == subs.end())
+        {
+            subs[n->subClass()] = n.get();
+            continue;
+        }
+        else
+        {
+            ESOINNNode * nPtr = (*it).second;
+            if (nPtr->density() < n->density())
+                subs[n->subClass()] = n.get();
+        }
+    }
 
-    //std::string path(folderPath);
+    bf::path p(folderPath);
 
-    //if (path.back() != '\\')
-//    for (auto it = subs.begin(); it < subs.end(); ++it)
-//    {
-//        ESOINNNode * n = (*it).second;
-
-//        //n->saveToPng();
-
-//    }
+    for (auto it = subs.begin(); it != subs.end(); ++it)
+    {
+        ESOINNNode * n = (*it).second;
+        assert(n);
+        std::string f = (boost::format("s_%d_d_%d.png") % n->subClass() % n->realLabel()).str();
+        n->saveToPng((p / bf::path(f)).string(), rows, cols);
+    }
 }
 #endif
 

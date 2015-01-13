@@ -15,6 +15,9 @@
 //#define CHECK_COUNT 2000
 #pragma warning (disable : 4996)
 
+
+
+
 namespace bf = boost::filesystem;
 
 /*! Train Esoinn on test data
@@ -161,7 +164,6 @@ void predict(ESOINN & esoinn, const std::string & dataFolder)
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
 	try
@@ -190,6 +192,10 @@ int main(int argc, char *argv[])
 
 		start = std::chrono::system_clock::now();
 		train(esoinn, dataPathString);
+        esoinn.saveApexesToFolder(dataPathString, 28, 28);
+
+        return 0;
+
         std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
 		test(esoinn, dataPathString);
 		predict(esoinn, dataPathString);
