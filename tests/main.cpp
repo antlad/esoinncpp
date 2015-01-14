@@ -119,7 +119,7 @@ void test(ESOINN & esoinn, const std::string & dataFolder)
  * \param esoinn Esoinn map
  * \param dataFolder Path to data folder
  */
-void predict(ESOINN & esoinn, const std::string & dataFolder)
+void predict(ESOINN & esoinn, const std::string & dataFolder, bool train)
 {
 	uint64_t t = 0;
 	std::vector<unsigned char> data;
@@ -149,7 +149,7 @@ void predict(ESOINN & esoinn, const std::string & dataFolder)
 		{
 			normData[i] = float(data[i]) / (float)std::numeric_limits<unsigned char>::max();
 		}
-        uint64_t label = esoinn.calcInput(normData, true);
+        uint64_t label = esoinn.calcInput(normData, train);
 		fso << std::to_string(++t) << "," << std::to_string(label) << "\n";
 
         if ((t % 200) == 0)
@@ -181,26 +181,26 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.0001f, 1.0f, 50, 200);
+        ESOINN esoinn(28 * 28, 0.001f, 0.85f, 100, 500);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{
             esoinn.loadFromPath(savePath.string());
-            esoinn.saveApexesToFolder(dataPathString, 28, 28);
-            return 0;
-
         }
 
 		std::chrono::time_point<std::chrono::system_clock> start, end;
 
 		start = std::chrono::system_clock::now();
-		train(esoinn, dataPathString);
-        predict(esoinn, dataPathString);//cheating..
+        //train(esoinn, dataPathString);
+        predict(esoinn, dataPathString, true);
+        esoinn.classificate();
+        esoinn.saveApexesToFolder(dataPathString, 28, 28);
+        return 0;
 
         std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
 
 		test(esoinn, dataPathString);
-		predict(esoinn, dataPathString);
+        predict(esoinn, dataPathString, false);
 		end = std::chrono::system_clock::now();
 
         esoinn.saveApexesToFolder(dataPathString, 28, 28);

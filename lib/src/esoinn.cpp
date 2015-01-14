@@ -558,6 +558,7 @@ int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 
 int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 {
+    ++m_iteration;
 	procInput(x);
 
 	ESOINNNode* n1 = 0;
@@ -624,11 +625,11 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 		makeSubClasses();
 		clearNoiseProc();
 	}
-	++m_iteration;
 }
 
 void ESOINN::Private::learnNextInput(const std::vector<float> &x, int32_t realLabel)
 {
+    ++m_iteration;
 	if (m_neurons.size() < 2)
 	{
 		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
