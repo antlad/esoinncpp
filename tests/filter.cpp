@@ -3,59 +3,49 @@
 
 #include "filter.h"
 
-GaussFilter::GaussFilter(uint8_t n, float sigma)
+GaussFilter::GaussFilter(int n, float sigma)
 	: m_n(n)
 {
 	m_data.resize(n * n);
 	float mean = n/2;
-	double sum;
+    double sum = 0;
 	for (int x = 0; x < n; ++x)
 	{
 		for (int y = 0; y < n; ++y)
 		{
 			float v = exp( -0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)) )
 					/ (2 * M_PI * sigma * sigma);
-			m_data[x * m_n + y] = v;
+            m_data[x * n + y] = v;
 			sum += v;
 		}
 	}
 
-	for (float & v : m_data)
+    for (int i = 0; i < m_data.size(); ++i)
 	{
-		v /= sum;
+        m_data[i] = m_data[i] / sum;
 	}
 }
 
-void GaussFilter::print()
+void GaussFilter::filterImage(std::vector<float> &image, int rows, int cols) const
 {
-	for (int x = 0; x < m_n; ++x)
+
+    int c = m_n / 2;
+
+    for (int x = c; x < (rows - c); ++x)
 	{
-		for (int y = 0; y < m_n; ++y)
+        for (int y = c; y < (cols - c); ++y)
 		{
-			std::cout << m_data[x * m_n + y] << " ";
-		}
-		std::cout << "\n";
-	}
-}
-
-
-
-void GaussFilter::filterImage(std::vector<float> &image, int rows, int cols)
-{
-//	int c = m_n / 2;
-
-	for (int x = 0; x < rows; ++x)
-	{
-		for (int y = 0; y < cols; ++y)
-		{
-			for (int xx = 0; xx < m_n; ++xx)
-			{
-				for (int yy = 0; yy < m_n; ++yy)
-				{
-					float & v = image[(x + xx) * rows + (y + yy)];
-					v = v * m_data[xx * m_n + yy];
-				}
-			}
+            double val = 0;
+            for (int xx = -c; xx <= c; ++xx)
+            {
+                for (int yy = -c; yy <= c; ++yy)
+                {
+                    float v1 = image[(x + xx) * rows + (y + yy)];
+                    float v2 = m_data[(xx + c) * m_n + (yy + c)];
+                    val += v1 * v2;
+                }
+                image[x* rows + y] = val;
+            }
 		}
 	}
 
