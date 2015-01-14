@@ -29,7 +29,3 @@ To run the program you should specify in the first argument the full path to the
 At first run the test program will convert cvs into binary files to gain more speed for future runs. 
 Testing is conducted in three steps: first network will train on data from train.cvs. Then it will run self check and count percentages of failures on train.cvs. At the end network will make prediction on data from  test.cvs, and result file (in Kaggle submission format) will be saved into out.txt.
 
-----------------------------------------------------------------
-Results:
-
-Result accuracy in Kaggle Digit Recognizer is about 92%. Network parameters were: C1 0.001, C2: 0.85, Max age: 1000, Clean and classification threshold: 2000.  Learn process is turned on only while training step is running. Network calculates train data only once. Total running time of test program with this parameters, on Core i5 2.5 GHz, is about 20 min (to reduce time set less max age and threshold, but this will decrease accuracy).
