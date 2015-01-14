@@ -5,6 +5,8 @@ set(SRC_LIST
 main.cpp
 kaggleparser.h
 kaggleparser.cpp
+filter.h
+filter.cpp
 )
 
 
