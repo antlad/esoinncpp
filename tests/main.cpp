@@ -39,7 +39,7 @@ void train(ESOINN & esoinn, const std::string & dataFolder)
 		std::cout << "start creating train.bin\n" << std::flush;
 
         KaggleParser parser((p / bf::path("train.csv")).string());
-        parser.setGaussFilter(5, 2.0);
+        parser.setGaussFilter(5, 1.0);
 
         KaggleBinary::convertToBinary(parser, totalPath.string(), true);
 		std::cout << "done creating train.bin\n" << std::flush;
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.0001f, 1.0f, 50, 100);
+        ESOINN esoinn(28 * 28, 0.001f, 0.8f, 50, 100);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{

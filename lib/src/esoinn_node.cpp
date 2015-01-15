@@ -240,7 +240,7 @@ float ESOINNNode::meanDistanceToNeibs() const
 	if (m_links.empty())
 		return 0;
 
-	float mean = 0;
+    double mean = 0;
 	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 	{
 		const ESOINNNode* n = it->first;
@@ -300,7 +300,7 @@ void ESOINNNode::updateDensity(float meanDist)
 {
 	assert(m_winCount);
 	m_s += 1. / ((1 + meanDist) * (1 + meanDist));
-	m_density = m_s / float(m_winCount);
+    m_density = m_s / m_winCount;
 	assert(!std::isnan(m_density));
 }
 

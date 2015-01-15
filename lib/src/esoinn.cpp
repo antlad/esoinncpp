@@ -291,7 +291,6 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 
         saveToPngFunc(aDesc.apex, dataFolder, 0);
 
-
         if (!aDesc.area.empty())
         {
             bf::path subFolder((boost::format("s_%d_d_%d")
@@ -414,8 +413,8 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-    if (w1->realLabel() != w2->realLabel() && w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
-		return false;
+    if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
+        return w1->realLabel() == w2->realLabel();
 
 	if (w1->subClass() == -1 || w2->subClass() == -1) return true;
 	else if (w1->subClass() == w2->subClass()) return true;
@@ -454,8 +453,8 @@ double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-    if (a->realLabel() != b->realLabel() && a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
-		return false;
+    if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
+        return a->realLabel() == b->realLabel();
 
 	int64_t A = a->subClass();
 	double winDensityMin = std::min(a->density(), b->density());
@@ -601,16 +600,15 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 	}
 
 	//Increment signals count
-	w1->incrementWinCount();
-
 	//Update density
-	float d = 0;
-	for (const ESOINNNodePtr& n : m_neurons)
-	{
-		d += w1->distanceTo(n.get());
-	}
-	d /= m_neurons.size();
-	w1->updateDensity(d);
+    //double d = 0; ;
+//	for (const ESOINNNodePtr& n : m_neurons)
+//	{
+//		d += w1->distanceTo(n.get());
+//	}
+//	d /= m_neurons.size();
+    w1->incrementWinCount();
+    w1->updateDensity(w1->meanDistanceToNeibs());
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());
