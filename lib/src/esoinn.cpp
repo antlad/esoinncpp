@@ -607,8 +607,9 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 //		d += w1->distanceTo(n.get());
 //	}
 //	d /= m_neurons.size();
-    w1->incrementWinCount();
+
     w1->updateDensity(w1->meanDistanceToNeibs());
+    w1->incrementWinCount();
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());

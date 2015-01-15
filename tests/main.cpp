@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.001f, 0.8f, 50, 100);
+        ESOINN esoinn(28 * 28, 0.001f, 0.8f, 50, 200);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{
