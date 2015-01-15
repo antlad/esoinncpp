@@ -59,15 +59,15 @@ public:
 	 */
 	float distanceTo(ESOINNNode* n) const;
 
-	/*! Return max distance to neibours
-	 * \return Max distance to neibours
-	 */
-	float maxDistanceToNeibs() const;
+	//	/*! Return max distance to neibours
+	//	 * \return Max distance to neibours
+	//	 */
+	//	float maxDistanceToNeibs() const;
 
-	/*! Calculate and return mean distance to neibs
-	 * \return Mean distance
-	 */
-	float meanDistanceToNeibs() const;
+	//	/*! Calculate and return mean distance to neibs
+	//	 * \return Mean distance
+	//	 */
+	//	float meanDistanceToNeibs() const;
 
 	/*! Set current sub class of node
 	 * \param subClass Sub class
@@ -93,7 +93,7 @@ public:
 	/*! Return real label of node
 	 * \return Real label of node
 	 */
-    int32_t realLabel() const;
+	int32_t realLabel() const;
 
 	/*! Return current density of node
 	 * \return Current density
@@ -177,23 +177,26 @@ public:
 	void destroy();
 
 	/*! Compare operator
-     * Only for debug use
+	 * Only for debug use
 	 * \param other Other node
 	 * \return True if same
 	 */
 	bool operator==(const ESOINNNode & other) const;
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
-    /*! Save weights into png file
-     * Debuging function
-     * \param path Path to png file
-     * \param rows rows count
-     * \param cols cols count
-     */
-    void saveToPng(const std::string & path, int rows, int cols) const;
+	/*! Save weights into png file
+	 * Debuging function
+	 * \param path Path to png file
+	 * \param rows rows count
+	 * \param cols cols count
+	 */
+	void saveToPng(const std::string & path, int rows, int cols) const;
 #endif
 
 private:
+	void fill(std::set<const ESOINNNode*> & neibs,
+			  const std::map<ESOINNNode *, uint16_t> &links) const;
+
 	float m_dist;								///< Current distance to input vector
 	double m_s;									///< Current value of calculating mean density
 	double m_density;							///< Current density of node
@@ -201,8 +204,8 @@ private:
 	int32_t m_realLabel;						///< Real label of node
 	uint32_t m_winCount;						///< Win count of node
 	uint64_t m_id;								///< Id of node
-    std::vector<float> m_weights;				///< Weight of node
-    std::map<ESOINNNode*, uint16_t> m_links;	///< Links with other nodes
+	std::vector<float> m_weights;				///< Weight of node
+	std::map<ESOINNNode*, uint16_t> m_links;	///< Links with other nodes
 };
 
 typedef std::shared_ptr<ESOINNNode> ESOINNNodePtr;

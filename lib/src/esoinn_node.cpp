@@ -36,10 +36,10 @@ static float vectorDistance(const std::vector<float>& x, const std::vector<float
 void ESOINNNode::adaptWeight(float E1, float E2,
 							 const std::vector<float>& x)
 {
-    assert(x.size() == m_weights.size());
+	assert(x.size() == m_weights.size());
 	size_t size = x.size();
 	{
-        float* wPtr = m_weights.data();
+		float* wPtr = m_weights.data();
 		const float* xPtr = x.data();
 		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
 		{
@@ -53,7 +53,7 @@ void ESOINNNode::adaptWeight(float E1, float E2,
 			it != m_links.end(); ++it)
 	{
 		ESOINNNode* n = it->first;
-        float* wPtr = n->m_weights.data();
+		float* wPtr = n->m_weights.data();
 		const float* xPtr = x.data();
 
 		for (size_t i = 0; i < size; ++i, ++wPtr, ++xPtr)
@@ -107,10 +107,10 @@ void ESOINNNode::splitNoise()
 		ESOINNNode* node = it->first;
 		assert(node);
 		assert(node->m_subClass != -1);
-        if (node->m_subClass != m_subClass ||
-                (node->m_realLabel != m_realLabel &&
-                 node->m_realLabel != UNKNOW_LABEL &&
-                 m_realLabel != UNKNOW_LABEL))
+		if (node->m_subClass != m_subClass ||
+				(node->m_realLabel != m_realLabel &&
+				 node->m_realLabel != UNKNOW_LABEL &&
+				 m_realLabel != UNKNOW_LABEL))
 		{
 			node->removeLink(this);
 			m_links.erase(it++);
@@ -134,10 +134,10 @@ ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
 	, m_s(0)
 	, m_density(0)
 	, m_subClass(-1)
-    , m_realLabel(UNKNOW_LABEL)
+	, m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(id)
-    , m_weights(weights)
+	, m_weights(weights)
 {
 }
 
@@ -146,7 +146,7 @@ ESOINNNode::ESOINNNode()
 	, m_s(0)
 	, m_density(0)
 	, m_subClass(-1)
-    , m_realLabel(UNKNOW_LABEL)
+	, m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(0)
 {
@@ -181,7 +181,7 @@ void ESOINNNode::clearOldLinks(int maxAge)
 
 const std::vector<float>& ESOINNNode::weights() const
 {
-    return m_weights;
+	return m_weights;
 }
 
 void ESOINNNode::addLink(ESOINNNode* n)
@@ -206,7 +206,7 @@ void ESOINNNode::incrementWinCount()
 
 void ESOINNNode::procInput(const std::vector<float>& x)
 {
-    m_dist = vectorDistance(m_weights, x);
+	m_dist = vectorDistance(m_weights, x);
 }
 
 std::size_t ESOINNNode::linksCount() const
@@ -216,41 +216,63 @@ std::size_t ESOINNNode::linksCount() const
 
 float ESOINNNode::distanceTo(ESOINNNode* n) const
 {
-    return vectorDistance(m_weights, n->m_weights);
+	return vectorDistance(m_weights, n->m_weights);
 }
-
-float ESOINNNode::maxDistanceToNeibs() const
+void ESOINNNode::fill(std::set<const ESOINNNode *> &neibs,
+					  const std::map<ESOINNNode *, uint16_t> &links) const
 {
-	float maxDist = std::numeric_limits<float>::min();
-
-	for (auto it = m_links.begin();
-			it != m_links.end(); ++it)
+	for (auto it = links.begin();
+			it != links.end(); ++it)
 	{
 		const ESOINNNode* n = it->first;
-        float dist = vectorDistance(m_weights, n->m_weights);
-		if (dist > maxDist)
-			maxDist = dist;
-	}
+		if (n == this)
+			continue;
 
-	return maxDist;
+		if (neibs.find(n) == neibs.end())
+			neibs.insert(n);
+
+		fill(neibs, n->m_links);
+	}
 }
 
-float ESOINNNode::meanDistanceToNeibs() const
-{
-	if (m_links.empty())
-		return 0;
+//float ESOINNNode::maxDistanceToNeibs() const
+//{
+//	float maxDist = std::numeric_limits<float>::min();
 
-    double mean = 0;
-	for (auto it = m_links.begin(); it != m_links.end(); ++it)
-	{
-		const ESOINNNode* n = it->first;
-        mean += vectorDistance(m_weights, n->m_weights);
-	}
+//	std::set<const ESOINNNode*> neibs;
+//	fill(neibs, m_links);
 
-	mean /= m_links.size();
+//	for (auto it = neibs.begin();
+//			it != neibs.end(); ++it)
+//	{
+//		const ESOINNNode* n = *it;
+//		float dist = vectorDistance(m_weights, n->m_weights);
+//		if (dist > maxDist)
+//			maxDist = dist;
+//	}
 
-	return mean;
-}
+//	return maxDist;
+//}
+
+//float ESOINNNode::meanDistanceToNeibs() const
+//{
+//	if (m_links.empty())
+//		return 0;
+
+//	std::set<const ESOINNNode*> neibs;
+//	fill(neibs, m_links);
+
+//	double mean = 0;
+//	for (auto it = neibs.begin(); it != neibs.end(); ++it)
+//	{
+//		const ESOINNNode* n = *it;
+//		mean += vectorDistance(m_weights, n->m_weights);
+//	}
+
+//	mean /= neibs.size();
+
+//	return mean;
+//}
 
 
 void ESOINNNode::setSubClass(int32_t subClass)
@@ -272,11 +294,11 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
 		{
 			node->m_subClass = subClass;
 			node->setNeibsSubClass(subClass, node);
-            if (apex->realLabel() != UNKNOW_LABEL)
-            {
-                node->setRealLabel(apex->realLabel());
-                assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
-            }
+			if (apex->realLabel() != UNKNOW_LABEL)
+			{
+				node->setRealLabel(apex->realLabel());
+				assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
+			}
 		}
 	}
 }
@@ -298,9 +320,9 @@ double ESOINNNode::density() const
 
 void ESOINNNode::updateDensity(float meanDist)
 {
-    //assert(m_winCount);
+	//assert(m_winCount);
 	m_s += 1. / ((1 + meanDist) * (1 + meanDist));
-    m_density = m_s / m_density;
+	m_density = m_s / m_density;
 	assert(!std::isnan(m_density));
 }
 
@@ -314,8 +336,8 @@ void ESOINNNode::saveToStream(std::ostream &os)
 	ut::write(os, m_winCount);
 	ut::write(os, m_id);
 
-    ut::write(os, m_weights.size());
-    for (float d : m_weights)
+	ut::write(os, m_weights.size());
+	for (float d : m_weights)
 	{
 		ut::write(os, d);
 	}
@@ -337,7 +359,7 @@ void ESOINNNode::loadLinksFromStream(std::istream &fs, std::map<uint64_t, ESOINN
 	ut::read(fs, size);
 	for (std::size_t i = 0; i < size; ++i)
 	{
-        uint64_t id;
+		uint64_t id;
 		uint16_t age;
 		ut::read(fs, id);
 		ut::read(fs, age);
@@ -356,10 +378,10 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
 					   m_s == other.m_s &&
 					   m_density == other.m_density &&
 					   m_subClass == other.m_subClass &&
-                       (m_realLabel == other.m_realLabel) &&
+					   (m_realLabel == other.m_realLabel) &&
 					   m_winCount == other.m_winCount &&
 					   m_id == other.m_id &&
-                       m_weights == other.m_weights;
+					   m_weights == other.m_weights;
 
 	if (!firstResult)
 		return false;
@@ -374,14 +396,14 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
 		if (e1->m_id != e2->m_id || (*it1).second != (*it2).second)
 			return false;
 	}
-    return true;
+	return true;
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
 {
-    if ((rows * cols) != m_weights.size())
-        throw std::runtime_error("Invalid rows/cols count!");
+	if ((rows * cols) != m_weights.size())
+		throw std::runtime_error("Invalid rows/cols count!");
 //        std::string fnm(folderPath);
 //        std::string name = "RL=" + std::to_string(n->realLabel()) + "_";
 //        name += "SL=" + std::to_string(n->subClass()) + "_";
@@ -389,21 +411,22 @@ void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
 //        name += ".png";
 
   //  fnm.append(path);
-    png::image<png::ga_pixel> image;
-    image.resize(rows, cols);
+	png::image<png::ga_pixel> image;
+	image.resize(rows, cols);
 
-    int p = 0;
-    for (const float& w : m_weights)
-    {
-        unsigned char c = w * 255;
-        int row = p / rows;
-        int col = p % cols;
-        image.set_pixel(col, row, c);
-        ++p;
-    }
-    image.write(path);
+	int p = 0;
+	for (const float& w : m_weights)
+	{
+		unsigned char c = w * 255;
+		int row = p / rows;
+		int col = p % cols;
+		image.set_pixel(col, row, c);
+		++p;
+	}
+	image.write(path);
 }
 #endif
+
 
 void ESOINNNode::loadFromStream(std::istream & fs)
 {
@@ -417,9 +440,9 @@ void ESOINNNode::loadFromStream(std::istream & fs)
 
 	std::size_t size;
 	ut::read(fs, size);
-    m_weights.resize(size);
+	m_weights.resize(size);
 	for (int i = 0; i < size; ++i)
 	{
-        ut::read(fs, m_weights[i]);
+		ut::read(fs, m_weights[i]);
 	}
 }

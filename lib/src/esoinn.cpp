@@ -43,8 +43,8 @@ public:
 	// Returning count of Esoinn nodes
 	size_t size() const;
 
-    // Return sublasses count
-    size_t subClassCount() const;
+	// Return sublasses count
+	size_t subClassCount() const;
 
 	// Loading Esoinn map from file
 	void loadFromPath(const std::string& abthPath);
@@ -57,19 +57,21 @@ public:
 						int32_t realLabel);
 
 	// Simply calc vector and return prediction of label
-    int32_t calcInput(const std::vector<float>& x) const;
+	int32_t calcInput(const std::vector<float>& x) const;
 
 	// Simply calc vector and return prediction of label and try to learn
-    int32_t calcInputAndLearn(const std::vector<float>& x);
+	int32_t calcInputAndLearn(const std::vector<float>& x);
 
 	/*! Start classificate procedure
 	 */
 	void classificate();
 
-    /*! Save main apexes to folder
-     */
-    void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
+	/*! Save main apexes to folder
+	 */
+	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
 private:
+
+	float maxDistanceToNeibs(const ESOINNNode* node) const;
 
 	/*! Part of learning process
 	 * \param x Input vector
@@ -205,108 +207,125 @@ void ESOINN::classificate() const
 
 std::size_t ESOINN::size() const
 {
-    return d->size();
+	return d->size();
 }
 
 std::size_t ESOINN::subClassesCount() const
 {
-    return d->subClassCount();
+	return d->subClassCount();
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
-    d->saveApexesToFolder(folderPath, rows, cols);
+	d->saveApexesToFolder(folderPath, rows, cols);
 }
 #endif
 
 void ESOINN::Private::classificate()
 {
 	makeSubClasses();
-    clearNoiseProc();
+	clearNoiseProc();
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 struct ApexDesc
 {
-    ESOINNNode* apex;
-    std::list<ESOINNNode*> area;
+	ESOINNNode* apex;
+	std::list<ESOINNNode*> area;
 };
 
 void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
-    if (folderPath.empty())
-        throw std::invalid_argument("folderPath is empty!");
-    if (!bf::exists(folderPath))
-        throw std::invalid_argument(str(boost::format("folder %1 doesn't exists!") % folderPath));
+	if (folderPath.empty())
+		throw std::invalid_argument("folderPath is empty!");
+	if (!bf::exists(folderPath))
+		throw std::invalid_argument(str(boost::format("folder %1 doesn't exists!") % folderPath));
 
-    std::map<int32_t, ApexDesc> subs;
+	std::map<int32_t, ApexDesc> subs;
 
-    for (const ESOINNNodePtr & n : m_neurons)
-    {
-        auto it = subs.find(n->subClass());
-        if (it == subs.end())
-        {
-            subs[n->subClass()].apex = n.get();
-            continue;
-        }
-        else
-        {
-            ApexDesc & aDesc = (*it).second;
-            if (aDesc.apex->density() < n->density())
-            {
-                ESOINNNode* a = aDesc.apex;
-                aDesc.apex = n.get();
-                aDesc.area.push_back(a);
-            }
-            else
-            {
-                aDesc.area.push_back(n.get());
-            }
-        }
-    }
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		auto it = subs.find(n->subClass());
+		if (it == subs.end())
+		{
+			subs[n->subClass()].apex = n.get();
+			continue;
+		}
+		else
+		{
+			ApexDesc & aDesc = (*it).second;
+			if (aDesc.apex->density() < n->density())
+			{
+				ESOINNNode* a = aDesc.apex;
+				aDesc.apex = n.get();
+				aDesc.area.push_back(a);
+			}
+			else
+			{
+				aDesc.area.push_back(n.get());
+			}
+		}
+	}
 
-    bf::path dataFolder(folderPath);
-    dataFolder = dataFolder / bf::path("png");
-    if (bf::exists(dataFolder))
-    {
-        if (!bf::remove_all(dataFolder))
-            throw std::runtime_error("Can't remove png directory!");
-    }
-    if (!bf::create_directory(dataFolder))
-        throw std::runtime_error("Can't create dirrectory for png!");
+	bf::path dataFolder(folderPath);
+	dataFolder = dataFolder / bf::path("png");
+	if (bf::exists(dataFolder))
+	{
+		if (!bf::remove_all(dataFolder))
+			throw std::runtime_error("Can't remove png directory!");
+	}
+	if (!bf::create_directory(dataFolder))
+		throw std::runtime_error("Can't create dirrectory for png!");
 
-    for (auto it = subs.begin(); it != subs.end(); ++it)
-    {
-        ApexDesc & aDesc = (*it).second;
+	for (auto it = subs.begin(); it != subs.end(); ++it)
+	{
+		ApexDesc & aDesc = (*it).second;
 
-        auto saveToPngFunc = [&](const ESOINNNode* n, const bf::path & folder, int i)
-        {
-            std::string f = (boost::format("s_%d_d_%d_i_%d.png")
-                             % n->subClass()
-                             % n->realLabel()
-                             % i).str();
-            n->saveToPng((folder / bf::path(f)).string(), rows, cols);
-        };
+		auto saveToPngFunc = [&](const ESOINNNode* n, const bf::path & folder, int i)
+		{
+			std::string f = (boost::format("s_%d_d_%d_i_%d.png")
+							 % n->subClass()
+							 % n->realLabel()
+							 % i).str();
+			n->saveToPng((folder / bf::path(f)).string(), rows, cols);
+		};
 
-        saveToPngFunc(aDesc.apex, dataFolder, 0);
+		saveToPngFunc(aDesc.apex, dataFolder, 0);
 
-        if (!aDesc.area.empty())
-        {
-            bf::path subFolder((boost::format("s_%d_d_%d")
-                                % aDesc.apex->subClass()
-                                % aDesc.apex->realLabel()).str());
-            if (!bf::create_directory(dataFolder / subFolder))
-                throw std::runtime_error("Can't create dirrectory for sub class images!");
-            int i = 0;
-            for (const ESOINNNode* n : aDesc.area)
-            {
-                saveToPngFunc(n, dataFolder / subFolder, ++i);
-            }
-        }
-    }
+		if (!aDesc.area.empty())
+		{
+			bf::path subFolder((boost::format("s_%d_d_%d")
+								% aDesc.apex->subClass()
+								% aDesc.apex->realLabel()).str());
+			if (!bf::create_directory(dataFolder / subFolder))
+				throw std::runtime_error("Can't create dirrectory for sub class images!");
+			int i = 0;
+			for (const ESOINNNode* n : aDesc.area)
+			{
+				saveToPngFunc(n, dataFolder / subFolder, ++i);
+			}
+		}
+	}
 }
+
 #endif
+
+float ESOINN::Private::maxDistanceToNeibs(const ESOINNNode *node) const
+{
+	int32_t sub = node->subClass();
+	float maxDist = std::numeric_limits<float>::min();
+	for (const ESOINNNodePtr& n : m_neurons)
+	{
+		if (n->subClass() == sub)
+		{
+			float dist = vectorDistance(node->weights(), n->weights());
+			if (dist > maxDist)
+				maxDist = dist;
+		}
+	}
+	return maxDist;
+}
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
@@ -350,8 +369,6 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	{
 		n[i]->procInput(x);
 	}
-
-
 }
 
 void ESOINN::Private::makeSubClasses()
@@ -413,8 +430,8 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-    if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
-        return w1->realLabel() == w2->realLabel();
+	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
+		return w1->realLabel() == w2->realLabel();
 
 	if (w1->subClass() == -1 || w2->subClass() == -1) return true;
 	else if (w1->subClass() == w2->subClass()) return true;
@@ -453,8 +470,8 @@ double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-    if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
-        return a->realLabel() == b->realLabel();
+	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
+		return a->realLabel() == b->realLabel();
 
 	int64_t A = a->subClass();
 	double winDensityMin = std::min(a->density(), b->density());
@@ -557,7 +574,7 @@ int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 
 int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 {
-    ++m_iteration;
+	++m_iteration;
 	procInput(x);
 
 	ESOINNNode* n1 = 0;
@@ -601,15 +618,15 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 
 	//Increment signals count
 	//Update density
-    //double d = 0; ;
+	//double d = 0; ;
 //	for (const ESOINNNodePtr& n : m_neurons)
 //	{
 //		d += w1->distanceTo(n.get());
 //	}
 //	d /= m_neurons.size();
 
-    w1->updateDensity(w1->meanDistanceToNeibs());
-    w1->incrementWinCount();
+	w1->updateDensity(w1->meanDistanceToNeibs());
+	w1->incrementWinCount();
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());
@@ -628,7 +645,7 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 
 void ESOINN::Private::learnNextInput(const std::vector<float> &x, int32_t realLabel)
 {
-    ++m_iteration;
+	++m_iteration;
 	if (m_neurons.size() < 2)
 	{
 		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
@@ -713,17 +730,17 @@ void ESOINN::Private::saveToPath(const std::string &abthPath) const
 
 std::size_t ESOINN::Private::size() const
 {
-    return m_neurons.size();
+	return m_neurons.size();
 }
 
 std::size_t ESOINN::Private::subClassCount() const
 {
-    std::set<int32_t> subClasses;
-    for (const ESOINNNodePtr& n : m_neurons)
-    {
-        subClasses.insert(n->subClass());
-    }
-    return subClasses.size();
+	std::set<int32_t> subClasses;
+	for (const ESOINNNodePtr& n : m_neurons)
+	{
+		subClasses.insert(n->subClass());
+	}
+	return subClasses.size();
 }
 
 void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const
