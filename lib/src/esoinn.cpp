@@ -73,6 +73,8 @@ private:
 
 	float maxDistanceToNeibs(const ESOINNNode* node) const;
 
+	float meanDistanceToNeibs(const ESOINNNode* node) const;
+
 	/*! Part of learning process
 	 * \param x Input vector
 	 * \param realLabel Real label
@@ -327,10 +329,27 @@ float ESOINN::Private::maxDistanceToNeibs(const ESOINNNode *node) const
 	return maxDist;
 }
 
+float ESOINN::Private::meanDistanceToNeibs(const ESOINNNode *node) const
+{
+	if (m_links.empty())
+		return 0;
+
+	double mean = 0;
+	for (const ESOINNNodePtr& n : m_neurons)
+	{
+
+		mean += vectorDistance(node->weights(), n->m_weights);
+	}
+
+	mean /= neibs.size();
+
+	return mean;
+}
+
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
 	if (node->linksCount())
-		return node->maxDistanceToNeibs();
+		return maxDistanceToNeibs(node);
 
 	size_t size = m_neurons.size();
 	std::vector<float> results;
