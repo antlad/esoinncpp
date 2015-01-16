@@ -218,61 +218,39 @@ float ESOINNNode::distanceTo(ESOINNNode* n) const
 {
 	return vectorDistance(m_weights, n->m_weights);
 }
-void ESOINNNode::fill(std::set<const ESOINNNode *> &neibs,
-					  const std::map<ESOINNNode *, uint16_t> &links) const
+
+float ESOINNNode::maxDistanceToNeibs() const
 {
-	for (auto it = links.begin();
-			it != links.end(); ++it)
-	{
-		const ESOINNNode* n = it->first;
-		if (n == this)
-			continue;
+    float maxDist = std::numeric_limits<float>::min();
 
-		if (neibs.find(n) == neibs.end())
-			neibs.insert(n);
+    for (auto it = m_links.begin();
+            it != m_links.end(); ++it)
+    {
+        const ESOINNNode* n = (*it).first;
+        float dist = vectorDistance(m_weights, n->m_weights);
+        if (dist > maxDist)
+            maxDist = dist;
+    }
 
-		fill(neibs, n->m_links);
-	}
+    return maxDist;
 }
 
-//float ESOINNNode::maxDistanceToNeibs() const
-//{
-//	float maxDist = std::numeric_limits<float>::min();
+float ESOINNNode::meanDistanceToNeibs() const
+{
+    if (m_links.empty())
+        return 0;
 
-//	std::set<const ESOINNNode*> neibs;
-//	fill(neibs, m_links);
+    double mean = 0;
+    for (auto it = m_links.begin(); it != m_links.end(); ++it)
+    {
+        const ESOINNNode* n = (*it).first;
+        mean += vectorDistance(m_weights, n->m_weights);
+    }
 
-//	for (auto it = neibs.begin();
-//			it != neibs.end(); ++it)
-//	{
-//		const ESOINNNode* n = *it;
-//		float dist = vectorDistance(m_weights, n->m_weights);
-//		if (dist > maxDist)
-//			maxDist = dist;
-//	}
+    mean /= m_links.size();
 
-//	return maxDist;
-//}
-
-//float ESOINNNode::meanDistanceToNeibs() const
-//{
-//	if (m_links.empty())
-//		return 0;
-
-//	std::set<const ESOINNNode*> neibs;
-//	fill(neibs, m_links);
-
-//	double mean = 0;
-//	for (auto it = neibs.begin(); it != neibs.end(); ++it)
-//	{
-//		const ESOINNNode* n = *it;
-//		mean += vectorDistance(m_weights, n->m_weights);
-//	}
-
-//	mean /= neibs.size();
-
-//	return mean;
-//}
+    return mean;
+}
 
 
 void ESOINNNode::setSubClass(int32_t subClass)

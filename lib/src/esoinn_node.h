@@ -59,15 +59,15 @@ public:
 	 */
 	float distanceTo(ESOINNNode* n) const;
 
-	//	/*! Return max distance to neibours
-	//	 * \return Max distance to neibours
-	//	 */
-	//	float maxDistanceToNeibs() const;
+    /*! Return max distance to neibours
+     * \return Max distance to neibours
+     */
+    float maxDistanceToNeibs() const;
 
-	//	/*! Calculate and return mean distance to neibs
-	//	 * \return Mean distance
-	//	 */
-	//	float meanDistanceToNeibs() const;
+    /*! Calculate and return mean distance to neibs
+     * \return Mean distance
+     */
+    float meanDistanceToNeibs() const;
 
 	/*! Set current sub class of node
 	 * \param subClass Sub class

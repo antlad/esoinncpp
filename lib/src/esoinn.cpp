@@ -71,10 +71,6 @@ public:
 	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
 private:
 
-	float maxDistanceToNeibs(const ESOINNNode* node) const;
-
-	float meanDistanceToNeibs(const ESOINNNode* node) const;
-
 	/*! Part of learning process
 	 * \param x Input vector
 	 * \param realLabel Real label
@@ -313,43 +309,11 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 
 #endif
 
-float ESOINN::Private::maxDistanceToNeibs(const ESOINNNode *node) const
-{
-	int32_t sub = node->subClass();
-	float maxDist = std::numeric_limits<float>::min();
-	for (const ESOINNNodePtr& n : m_neurons)
-	{
-		if (n->subClass() == sub)
-		{
-			float dist = vectorDistance(node->weights(), n->weights());
-			if (dist > maxDist)
-				maxDist = dist;
-		}
-	}
-	return maxDist;
-}
-
-float ESOINN::Private::meanDistanceToNeibs(const ESOINNNode *node) const
-{
-	if (m_links.empty())
-		return 0;
-
-	double mean = 0;
-	for (const ESOINNNodePtr& n : m_neurons)
-	{
-
-		mean += vectorDistance(node->weights(), n->m_weights);
-	}
-
-	mean /= neibs.size();
-
-	return mean;
-}
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
 	if (node->linksCount())
-		return maxDistanceToNeibs(node);
+        return node->maxDistanceToNeibs();
 
 	size_t size = m_neurons.size();
 	std::vector<float> results;
@@ -644,7 +608,7 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 //	}
 //	d /= m_neurons.size();
 
-	w1->updateDensity(w1->meanDistanceToNeibs());
+    w1->updateDensity(w1->meanDistanceToNeibs());
 	w1->incrementWinCount();
 
 	//Adapt weights
@@ -793,3 +757,4 @@ void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const
 	assert(rvW2);
 	assert(rvW1);
 }
+
