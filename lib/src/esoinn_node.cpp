@@ -301,7 +301,7 @@ void ESOINNNode::updateDensity(float meanDist)
 	//assert(m_winCount);
 	m_s += 1. / ((1 + meanDist) * (1 + meanDist));
     assert(!std::isnan(m_density));
-    assert(!m_density != 0);
+    assert(m_density != 0);
 	m_density = m_s / m_density;
     assert(!std::isinf(m_density));
 	assert(!std::isnan(m_density));
