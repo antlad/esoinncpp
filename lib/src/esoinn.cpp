@@ -319,7 +319,7 @@ float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 	std::vector<float> results;
 	results.resize(size);
 
-	#pragma omp parallel for
+    //#pragma omp parallel for
 	for (int i = 0; i < size; ++i)
 	{
 		ESOINNNode* n = m_neurons[i].get();
@@ -346,8 +346,7 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	//Proc new input vector
 	std::size_t size = m_neurons.size();
 	const std::vector<ESOINNNodePtr> & n = m_neurons;
-	#pragma omp parallel for
-
+    //#pragma omp parallel for
 	for (int i = 0 ; i < size; ++i)
 	{
 		n[i]->procInput(x);
