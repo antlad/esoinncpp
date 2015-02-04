@@ -221,35 +221,35 @@ float ESOINNNode::distanceTo(ESOINNNode* n) const
 
 float ESOINNNode::maxDistanceToNeibs() const
 {
-    float maxDist = std::numeric_limits<float>::min();
+	float maxDist = std::numeric_limits<float>::min();
 
-    for (auto it = m_links.begin();
-            it != m_links.end(); ++it)
-    {
-        const ESOINNNode* n = (*it).first;
-        float dist = vectorDistance(m_weights, n->m_weights);
-        if (dist > maxDist)
-            maxDist = dist;
-    }
+	for (auto it = m_links.begin();
+			it != m_links.end(); ++it)
+	{
+		const ESOINNNode* n = (*it).first;
+		float dist = vectorDistance(m_weights, n->m_weights);
+		if (dist > maxDist)
+			maxDist = dist;
+	}
 
-    return maxDist;
+	return maxDist;
 }
 
 float ESOINNNode::meanDistanceToNeibs() const
 {
-    if (m_links.empty())
-        return 0;
+	if (m_links.empty())
+		return 0;
 
-    double mean = 0;
-    for (auto it = m_links.begin(); it != m_links.end(); ++it)
-    {
-        const ESOINNNode* n = (*it).first;
-        mean += vectorDistance(m_weights, n->m_weights);
-    }
+	double mean = 0;
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		const ESOINNNode* n = (*it).first;
+		mean += vectorDistance(m_weights, n->m_weights);
+	}
 
-    mean /= m_links.size();
+	mean /= m_links.size();
 
-    return mean;
+	return mean;
 }
 
 
@@ -298,12 +298,12 @@ double ESOINNNode::density() const
 
 void ESOINNNode::updateDensity(float meanDist)
 {
-	//assert(m_winCount);
+	assert(m_winCount);
 	m_s += 1. / ((1 + meanDist) * (1 + meanDist));
-    assert(!std::isnan(m_density));
-    assert(m_density != 0);
-	m_density = m_s / m_density;
-    assert(!std::isinf(m_density));
+	assert(!std::isnan(m_density));
+	//assert(m_density != 0);
+	m_density = m_s / m_winCount;
+	assert(!std::isinf(m_density));
 	assert(!std::isnan(m_density));
 }
 

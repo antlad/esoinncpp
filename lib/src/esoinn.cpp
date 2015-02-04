@@ -177,7 +177,7 @@ ESOINN::ESOINN(size_t inputSize, float c1, float c2, int maxAge, int iterationTh
 
 int32_t ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
 {
-    if (!learnData)
+	if (!learnData)
 		return d->calcInput(x);
 	else
 		return d->calcInputAndLearn(x);
@@ -313,13 +313,13 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
 	if (node->linksCount())
-        return node->maxDistanceToNeibs();
+		return node->maxDistanceToNeibs();
 
 	size_t size = m_neurons.size();
 	std::vector<float> results;
 	results.resize(size);
 
-    //#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int i = 0; i < size; ++i)
 	{
 		ESOINNNode* n = m_neurons[i].get();
@@ -346,7 +346,7 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	//Proc new input vector
 	std::size_t size = m_neurons.size();
 	const std::vector<ESOINNNodePtr> & n = m_neurons;
-    //#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int i = 0 ; i < size; ++i)
 	{
 		n[i]->procInput(x);
@@ -545,8 +545,8 @@ const std::vector<ESOINNNodePtr> &ESOINN::Private::neurons() const
 
 int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 {
-    if (m_neurons.size() < 2)
-        std::runtime_error("ESOINN is empty!");
+	if (m_neurons.size() < 2)
+		std::runtime_error("ESOINN is empty!");
 	procInput(x);
 
 	ESOINNNode* n1 = 0;
@@ -558,13 +558,13 @@ int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 
 int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 {
-    ++m_iteration;
-    if (m_neurons.size() < 2)
-    {
-        ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
-        m_neurons.push_back(n);
-        return UNKNOW_LABEL;
-    }
+	++m_iteration;
+	if (m_neurons.size() < 2)
+	{
+		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
+		m_neurons.push_back(n);
+		return UNKNOW_LABEL;
+	}
 
 	procInput(x);
 
@@ -616,8 +616,8 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 //	}
 //	d /= m_neurons.size();
 
-    w1->updateDensity(w1->meanDistanceToNeibs());
 	w1->incrementWinCount();
+	w1->updateDensity(w1->meanDistanceToNeibs());
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());
