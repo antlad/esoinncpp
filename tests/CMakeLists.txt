@@ -33,4 +33,5 @@ add_executable(ocitest ${OCI_SRC_LIST})
 
 include_directories( ${esoinncpp_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_link_libraries(kagglediggits ${esoinncpp_LIBRARIES} ${Boost_LIBRARIES} ${PNG_LIBRARY})
+target_link_libraries(ocitest ${esoinncpp_LIBRARIES} ${Boost_LIBRARIES} ${PNG_LIBRARY})
 
