@@ -107,10 +107,10 @@ void ESOINNNode::splitNoise()
 		ESOINNNode* node = it->first;
 		assert(node);
 		assert(node->m_subClass != -1);
-		if (node->m_subClass != m_subClass ||
+        if (node->m_subClass != m_subClass/* ||
 				(node->m_realLabel != m_realLabel &&
 				 node->m_realLabel != UNKNOW_LABEL &&
-				 m_realLabel != UNKNOW_LABEL))
+                 m_realLabel != UNKNOW_LABEL)*/)
 		{
 			node->removeLink(this);
 			m_links.erase(it++);
@@ -272,11 +272,11 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
 		{
 			node->m_subClass = subClass;
 			node->setNeibsSubClass(subClass, node);
-			if (apex->realLabel() != UNKNOW_LABEL)
-			{
-				node->setRealLabel(apex->realLabel());
-				assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
-			}
+//			if (apex->realLabel() != UNKNOW_LABEL)
+//			{
+                //node->setRealLabel(apex->realLabel());
+                //assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
+            //}
 		}
 	}
 }
@@ -359,7 +359,7 @@ bool ESOINNNode::operator==(const ESOINNNode &other) const
 					   m_s == other.m_s &&
 					   m_density == other.m_density &&
 					   m_subClass == other.m_subClass &&
-					   (m_realLabel == other.m_realLabel) &&
+//					   (m_realLabel == other.m_realLabel) &&
 					   m_winCount == other.m_winCount &&
 					   m_id == other.m_id &&
 					   m_weights == other.m_weights;

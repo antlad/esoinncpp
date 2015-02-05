@@ -75,7 +75,7 @@ private:
 	 * \param x Input vector
 	 * \param realLabel Real label
 	 */
-	void modeToData(const std::vector<float>& x, int32_t realLabel);
+    void modeToData(const std::vector<float>& x, int32_t realLabel, ESOINNNode *w1 = 0, ESOINNNode *w2 = 0);
 
 	/*! Calculating similarity threshol
 	 * \param node Node to calculate
@@ -412,8 +412,8 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
-		return w1->realLabel() == w2->realLabel();
+//	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
+//		return w1->realLabel() == w2->realLabel();
 
 	if (w1->subClass() == -1 || w2->subClass() == -1) return true;
 	else if (w1->subClass() == w2->subClass()) return true;
@@ -452,8 +452,8 @@ double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
-		return a->realLabel() == b->realLabel();
+//	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
+//		return a->realLabel() == b->realLabel();
 
 	int64_t A = a->subClass();
 	double winDensityMin = std::min(a->density(), b->density());
@@ -573,16 +573,19 @@ int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 
 	findWinners(n1, n2);
 	int r = n1->realLabel();
-	modeToData(x, r);
+    modeToData(x, r, n1, n2);
 	return r;
 }
 
-void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
+void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel, ESOINNNode* w1, ESOINNNode* w2)
 {
-	ESOINNNode* w1 = 0;
-	ESOINNNode* w2 = 0;
+    //ESOINNNode* w1 = 0;
+    //ESOINNNode* w2 = 0;
 
-	findWinners(w1, w2);
+    if (w1 == 0 && w2 == 0)
+    {
+        findWinners(w1, w2);
+    }
 
 	if (!isWithinThreshold(w1, w2))
 	{
