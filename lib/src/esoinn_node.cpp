@@ -107,10 +107,10 @@ void ESOINNNode::splitNoise()
 		ESOINNNode* node = it->first;
 		assert(node);
 		assert(node->m_subClass != -1);
-        if (node->m_subClass != m_subClass/* ||
+		if (node->m_subClass != m_subClass/* ||
 				(node->m_realLabel != m_realLabel &&
 				 node->m_realLabel != UNKNOW_LABEL &&
-                 m_realLabel != UNKNOW_LABEL)*/)
+				 m_realLabel != UNKNOW_LABEL)*/)
 		{
 			node->removeLink(this);
 			m_links.erase(it++);
@@ -274,9 +274,9 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
 			node->setNeibsSubClass(subClass, node);
 //			if (apex->realLabel() != UNKNOW_LABEL)
 //			{
-                //node->setRealLabel(apex->realLabel());
-                //assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
-            //}
+				//node->setRealLabel(apex->realLabel());
+				//assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
+			//}
 		}
 	}
 }
@@ -407,6 +407,18 @@ void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
 	image.write(path);
 }
 #endif
+
+std::vector<uint64_t> ESOINNNode::idLinks() const
+{
+	std::vector<uint64_t> result;
+	result.reserve(m_links.size());
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+		result.push_back(node->nodeId());
+	}
+	return result;
+}
 
 
 void ESOINNNode::loadFromStream(std::istream & fs)

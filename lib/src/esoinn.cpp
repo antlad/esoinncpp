@@ -69,13 +69,19 @@ public:
 	/*! Save main apexes to folder
 	 */
 	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
+
+
+	std::vector<float> nodeWeights(std::size_t i) const;
+
+
+	std::map<std::size_t, std::vector<std::size_t> > getLinks() const;
 private:
 
 	/*! Part of learning process
 	 * \param x Input vector
 	 * \param realLabel Real label
 	 */
-    void modeToData(const std::vector<float>& x, int32_t realLabel, ESOINNNode *w1 = 0, ESOINNNode *w2 = 0);
+	void modeToData(const std::vector<float>& x, int32_t realLabel, ESOINNNode *w1 = 0, ESOINNNode *w2 = 0);
 
 	/*! Calculating similarity threshol
 	 * \param node Node to calculate
@@ -213,6 +219,16 @@ std::size_t ESOINN::subClassesCount() const
 	return d->subClassCount();
 }
 
+std::vector<float> ESOINN::nodeWeights(std::size_t i) const
+{
+	return d->nodeWeights(i);
+}
+
+std::map<std::size_t, std::vector<std::size_t> > ESOINN::getLinks() const
+{
+	return d->getLinks();
+}
+
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
@@ -306,8 +322,37 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 		}
 	}
 }
-
 #endif
+
+std::vector<float> ESOINN::Private::nodeWeights(std::size_t i) const
+{
+	if (i < 0 || i > m_neurons.size())
+		throw std::runtime_error("Invalid node number");
+
+	return m_neurons[i]->weights();
+}
+
+std::map<std::size_t, std::vector<std::size_t> > ESOINN::Private::getLinks() const
+{
+	std::map<uint64_t, std::size_t> idToPos;
+	std::map<std::size_t, std::vector<std::size_t> > result;
+	std::size_t pos = 0;
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		idToPos[n->nodeId()] = pos++;
+	}
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		std::vector<uint64_t> ids = n->idLinks();
+		std::size_t pos = idToPos[n->nodeId()];
+		result[pos].resize(ids.size());
+		for (std::size_t i = 0; i < ids.size(); ++i)
+		{
+			result[pos][i] = idToPos[ids[i]];
+		}
+	}
+	return result;
+}
 
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
@@ -573,19 +618,19 @@ int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 
 	findWinners(n1, n2);
 	int r = n1->realLabel();
-    modeToData(x, r, n1, n2);
+	modeToData(x, r, n1, n2);
 	return r;
 }
 
 void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel, ESOINNNode* w1, ESOINNNode* w2)
 {
-    //ESOINNNode* w1 = 0;
-    //ESOINNNode* w2 = 0;
+	//ESOINNNode* w1 = 0;
+	//ESOINNNode* w2 = 0;
 
-    if (w1 == 0 && w2 == 0)
-    {
-        findWinners(w1, w2);
-    }
+	if (w1 == 0 && w2 == 0)
+	{
+		findWinners(w1, w2);
+	}
 
 	if (!isWithinThreshold(w1, w2))
 	{
