@@ -26,6 +26,7 @@ public:
 
 private:
 	std::vector<NodeInfo> m_info;
+	std::vector<QImage> m_img;
 };
 
 #endif // NODESMODEL_H
