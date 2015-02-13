@@ -77,7 +77,7 @@ void MainForm::on_nextStepPushBtn_clicked()
 	int digit;
 	if (m_ds->getNextDataNormalized(data, digit))
 	{
-		m_esoinn->learnNextInput(data, true);
+		m_esoinn->learnNextInput(data, digit);
 	}
 
 	m_model.updateModel(*m_esoinn.get());

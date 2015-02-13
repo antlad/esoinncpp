@@ -4,7 +4,7 @@
 #include <QAbstractItemModel>
 
 class ESOINN;
-class ESOINN::NodeInfo;
+class NodeInfo;
 
 class NodesModel
 		: public QAbstractItemModel
@@ -12,6 +12,8 @@ class NodesModel
 	Q_OBJECT
 public:
 	explicit NodesModel(QObject *parent = 0);
+	virtual QVariant headerData(int section, Qt::Orientation orientation,
+								int role = Qt::DisplayRole) const;
 
 	virtual QModelIndex index(int row, int column,
 							  const QModelIndex &parent = QModelIndex()) const;
@@ -20,10 +22,10 @@ public:
 	virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 	virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
-	void updateModel(const ESOINN & esoinn) const;
+	void updateModel(const ESOINN & esoinn);
 
 private:
-	std::vector<ESOINN::NodeInfo> m_info;
+	std::vector<NodeInfo> m_info;
 };
 
 #endif // NODESMODEL_H

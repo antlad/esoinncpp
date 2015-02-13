@@ -8,6 +8,15 @@
 
 #include "esoinn_export.h"
 
+struct NodeInfo
+{
+	int32_t subClass;
+	int32_t realLabel;
+	double density;
+	int winCount;
+	std::vector<float> weights;
+};
+
 /** Main ESOINN class
  */
 class ESOINN_EXPORT ESOINN
@@ -63,16 +72,6 @@ public:
 	 * \return Count of subclasses
 	 */
 	std::size_t subClassesCount() const;
-
-
-	struct NodeInfo
-	{
-		int32_t subClass;
-		int32_t realLabel;
-		double density;
-		int winCount;
-		std::vector<float> weights;
-	};
 
 	NodeInfo nodeInfo(std::size_t i) const;
 

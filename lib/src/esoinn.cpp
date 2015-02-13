@@ -70,7 +70,7 @@ public:
 	 */
 	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
 
-	ESOINN::NodeInfo nodeInfo(std::size_t i) const;
+	NodeInfo nodeInfo(std::size_t i) const;
 
 
 	//std::vector<float> nodeWeights(std::size_t i) const;
@@ -221,7 +221,7 @@ std::size_t ESOINN::subClassesCount() const
 	return d->subClassCount();
 }
 
-ESOINN::NodeInfo ESOINN::nodeInfo(std::size_t i) const
+NodeInfo ESOINN::nodeInfo(std::size_t i) const
 {
 	return d->nodeInfo(i);
 }
@@ -327,12 +327,12 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 
 #endif
 
-ESOINN::NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
+NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
 {
 	if (i < 0 || i > m_neurons.size())
 		throw std::runtime_error("Invalid node number");
 
-	ESOINN::NodeInfo info;
+	NodeInfo info;
 	const ESOINNNodePtr & n = m_neurons[i];
 	info.weights = n->weights();
 	info.subClass = n->subClass();
