@@ -195,6 +195,8 @@ public:
 
 	std::vector<uint64_t> idLinks() const;
 
+	uint32_t winCount() const;
+
 private:
 	void fill(std::set<const ESOINNNode*> & neibs,
 			  const std::map<ESOINNNode *, uint16_t> &links) const;

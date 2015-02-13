@@ -64,11 +64,16 @@ public:
 	 */
 	std::size_t subClassesCount() const;
 
-	/*! Get node weights
-	 * \param i node number
-	 * \return node weights
-	 */
-	std::vector<float> nodeWeights(std::size_t i) const;
+
+	struct NodeInfo
+	{
+		int32_t subClass;
+		double density;
+		int winCount;
+		std::vector<float> weights;
+	};
+
+	NodeInfo nodeInfo(std::size_t i) const;
 
 	/*! Get connections
 	 * \return map of connections

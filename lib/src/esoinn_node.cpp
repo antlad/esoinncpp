@@ -420,6 +420,11 @@ std::vector<uint64_t> ESOINNNode::idLinks() const
 	return result;
 }
 
+uint32_t ESOINNNode::winCount() const
+{
+	return m_winCount;
+}
+
 
 void ESOINNNode::loadFromStream(std::istream & fs)
 {
