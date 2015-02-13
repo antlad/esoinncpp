@@ -40,11 +40,10 @@ int main(int argc, char *argv[])
 
 		while(ds.getNextDataNormalized(data, digit))
 		{
-			esoinn.learnNextInput(data, true);
+			esoinn.learnNextInput(data, digit);
 		}
 		esoinn.classificate();
 		esoinn.saveApexesToFolder(dataPathString, 8, 8);
-
 
 		bf::path ociTestPath = dataPath / "optdigits.tes";
 		if (!bf::exists(ociTestPath))
@@ -56,7 +55,7 @@ int main(int argc, char *argv[])
 		int success_count = 0;
 		while(ds_test.getNextDataNormalized(data, digit))
 		{
-			int32_t out_digit = esoinn.calcInput(data, false);
+			int32_t out_digit = esoinn.calcInput(data, true);
 			if (out_digit == digit)
 				++success_count;
 			++test_count;

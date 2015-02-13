@@ -11,6 +11,7 @@ MainForm::MainForm(QWidget *parent) :
 	ui(new Ui::MainForm)
 {
 	ui->setupUi(this);
+	ui->tableView->setModel(&m_model);
 }
 
 MainForm::~MainForm()
@@ -71,6 +72,13 @@ void MainForm::on_nextStepPushBtn_clicked()
 //		++test_count;
 //	}
 //	std::cout << "success rait " << double(success_count) / double(test_count) * 100 << "\n";
+
+	std::vector<float> data;
+	int digit;
+	if (m_ds->getNextDataNormalized(data, digit))
+	{
+		m_esoinn->learnNextInput(data, true);
+	}
 }
 
 void MainForm::on_loadPushButton_clicked()
@@ -94,8 +102,7 @@ void MainForm::on_loadPushButton_clicked()
 		if (!QFile::exists(trainPath))
 			std::runtime_error("oci train does not exist");
 
-		OCIDataSet ds(trainPath.toUtf8().toStdString());
-
+		m_ds = std::make_shared<OCIDataSet>(trainPath.toUtf8().toStdString());
 
 	}
 	catch(const std::exception & e)

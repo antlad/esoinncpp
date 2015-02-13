@@ -6,9 +6,13 @@
 #include <memory>
 #include <esoinn.h>
 
+#include "data/nodesmodel.h"
+
 namespace Ui {
 class MainForm;
 }
+
+class OCIDataSet;
 
 class MainForm : public QDialog
 {
@@ -26,7 +30,9 @@ private slots:
 private:
 	Ui::MainForm *ui;
 
+	NodesModel m_model;
 	std::shared_ptr<ESOINN> m_esoinn;
+	std::shared_ptr<OCIDataSet> m_ds;
 };
 
 #endif // MAINFORM_H
