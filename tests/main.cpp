@@ -29,7 +29,7 @@ void train(ESOINN & esoinn, const std::string & dataFolder)
 	uint64_t t = 0;
 	int digit;
 
-    std::vector<float> data;
+	std::vector<float> data;
 	bf::path p(dataFolder);
 	bf::path f("train.bin");
 	bf::path totalPath = p / f;
@@ -38,17 +38,17 @@ void train(ESOINN & esoinn, const std::string & dataFolder)
 	{
 		std::cout << "start creating train.bin\n" << std::flush;
 
-        KaggleParser parser((p / bf::path("train.csv")).string());
-        parser.setGaussFilter(5, 1.0);
+		KaggleParser parser((p / bf::path("train.csv")).string());
+		parser.setGaussFilter(5, 1.0);
 
-        KaggleBinary::convertToBinary(parser, totalPath.string(), true);
+		KaggleBinary::convertToBinary(parser, totalPath.string(), true);
 		std::cout << "done creating train.bin\n" << std::flush;
 	}
 	KaggleBinary trainParser(totalPath.string());
 
-    while (trainParser.getNextData(data, &digit))
+	while (trainParser.getNextData(data, &digit))
 	{
-        esoinn.learnNextInput(data, digit);
+		esoinn.learnNextInput(data, digit);
 
 		++t;
 		if ((t % 200) == 0)
@@ -81,11 +81,11 @@ void test(ESOINN & esoinn, const std::string & dataFolder)
 
 	uint64_t t = 0;
 	int digit;
-    std::vector<float> data;
+	std::vector<float> data;
 	int fail = 0;
-    while (testParser.getNextData(data, &digit))
+	while (testParser.getNextData(data, &digit))
 	{
-        uint64_t label = esoinn.calcInput(data, false);
+		uint64_t label = esoinn.calcInput(data, false);
 		if (label != digit)
 			++fail;
 
@@ -113,15 +113,15 @@ void test(ESOINN & esoinn, const std::string & dataFolder)
 void predict(ESOINN & esoinn, const std::string & dataFolder, bool train)
 {
 	uint64_t t = 0;
-    std::vector<float> data;
+	std::vector<float> data;
 	bf::path p(dataFolder);
 	bf::path total = p / bf::path("test.bin");
 	if (!boost::filesystem::exists(total))
 	{
 		std::cout << "start creating test.bin\n" << std::flush;
-        KaggleParser parser((p / bf::path("test.csv")).string());
-        parser.setGaussFilter(5, 1.0);
-        KaggleBinary::convertToBinary(parser, total.string(), false);
+		KaggleParser parser((p / bf::path("test.csv")).string());
+		parser.setGaussFilter(5, 1.0);
+		KaggleBinary::convertToBinary(parser, total.string(), false);
 		std::cout << "done creating test.bin\n" << std::flush;
 	}
 	KaggleBinary predictParser(total.string());
@@ -136,7 +136,7 @@ void predict(ESOINN & esoinn, const std::string & dataFolder, bool train)
 
 	while (predictParser.getNextData(data, 0))
 	{
-        uint64_t label = esoinn.calcInput(data, train);
+		uint64_t label = esoinn.calcInput(data, train);
 		fso << std::to_string(++t) << "," << std::to_string(label) << "\n";
 
 		if ((t % 200) == 0)
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 		}
 		bf::path dataPath(dataPathString);
 
-        ESOINN esoinn(28 * 28, 0.0001f, 1.0f, 50, 200);
+		ESOINN esoinn(28 * 28, 0.001f, 1.0f, 50, 200);
 		bf::path savePath = dataPath / "kaggle_essoinn.dat";
 		if (bf::exists(savePath))
 		{
@@ -179,13 +179,13 @@ int main(int argc, char *argv[])
 
 		start = std::chrono::system_clock::now();
 		train(esoinn, dataPathString);
-        std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
-        //predict(esoinn, dataPathString, true);
-        esoinn.classificate();
+		std::cout << "train done, size=" << esoinn.size() << " subClasses count= " << esoinn.subClassesCount() << "\n";
+		//predict(esoinn, dataPathString, true);
+		esoinn.classificate();
 
-        test(esoinn, dataPathString);
-        esoinn.saveApexesToFolder(dataPathString, 28, 28);
-        return 0;
+		test(esoinn, dataPathString);
+		esoinn.saveApexesToFolder(dataPathString, 28, 28);
+		return 0;
 		predict(esoinn, dataPathString, false);
 
 		end = std::chrono::system_clock::now();

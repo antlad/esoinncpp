@@ -79,6 +79,8 @@ void MainForm::on_nextStepPushBtn_clicked()
 	{
 		m_esoinn->learnNextInput(data, true);
 	}
+
+	m_model.updateModel(*m_esoinn.get());
 }
 
 void MainForm::on_loadPushButton_clicked()

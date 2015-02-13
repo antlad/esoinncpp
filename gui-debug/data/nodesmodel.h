@@ -3,6 +3,9 @@
 
 #include <QAbstractItemModel>
 
+class ESOINN;
+class ESOINN::NodeInfo;
+
 class NodesModel
 		: public QAbstractItemModel
 {
@@ -16,6 +19,11 @@ public:
 	virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
 	virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 	virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+
+	void updateModel(const ESOINN & esoinn) const;
+
+private:
+	std::vector<ESOINN::NodeInfo> m_info;
 };
 
 #endif // NODESMODEL_H
