@@ -68,6 +68,7 @@ public:
 	struct NodeInfo
 	{
 		int32_t subClass;
+		int32_t realLabel;
 		double density;
 		int winCount;
 		std::vector<float> weights;
