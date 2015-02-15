@@ -127,6 +127,7 @@ void ESOINNNode::destroy()
 		ESOINNNode* node = it->first;
 		node->removeLink(this);
 	}
+	m_links.clear();
 }
 
 ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
@@ -170,7 +171,7 @@ void ESOINNNode::clearOldLinks(int maxAge)
 		if ((*it).second > maxAge)
 		{
 			it->first->removeLink(this);
-			it = m_links.erase(it);
+			m_links.erase(it++);
 		}
 		else
 		{

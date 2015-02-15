@@ -86,15 +86,17 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
 			const std::vector<std::size_t> & ids = (*it).second;
 
 			QImage result(32 * ids.size(), 32, QImage::Format_RGB32);
-
-			QPainter painter;
-			painter.begin(&result);
-			for (int i = 0; i < ids.size(); ++i)
+			if (!ids.empty())
 			{
-				painter.drawImage(32 * i, 0, m_img[ids[i]]);
+				QPainter painter;
+				painter.begin(&result);
+				for (int i = 0; i < ids.size(); ++i)
+				{
+					painter.drawImage(32 * i, 0, m_img[ids[i]]);
 
+				}
+				painter.end();
 			}
-			painter.end();
 			return QPixmap::fromImage(result);
 		}
 	}
