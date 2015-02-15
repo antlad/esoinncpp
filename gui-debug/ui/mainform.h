@@ -2,6 +2,7 @@
 #define MAINFORM_H
 
 #include <QDialog>
+#include <QSortFilterProxyModel>
 
 #include <memory>
 #include <esoinn.h>
@@ -29,6 +30,8 @@ private slots:
 
 private:
 	Ui::MainForm *ui;
+	QSortFilterProxyModel m_proxyModel;
+
 
 	NodesModel m_model;
 	std::shared_ptr<ESOINN> m_esoinn;

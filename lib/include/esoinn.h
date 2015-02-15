@@ -91,6 +91,9 @@ public:
 	void saveApexesToFolder(const std::string & folderPath, int rows, int cols) const;
 #endif
 
+
+	bool wasClassificationStep() const;
+
 private:
 	class Private;
 	std::shared_ptr<Private> d; ///< Private part of class

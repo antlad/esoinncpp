@@ -72,9 +72,7 @@ public:
 
 	NodeInfo nodeInfo(std::size_t i) const;
 
-
-	//std::vector<float> nodeWeights(std::size_t i) const;
-
+	bool wasClassificationStep() const;
 
 	std::map<std::size_t, std::vector<std::size_t> > getLinks() const;
 private:
@@ -167,6 +165,7 @@ private:
 	void findWinners(ESOINNNode*& rvW1, ESOINNNode*& rvW2) const;
 
 	std::vector<ESOINNNodePtr> m_neurons;	///< neurons
+	bool m_thisWasClassificationStep;		///<
 	size_t m_inputSize;						///< Input vector size
 	uint64_t m_iteration;					///< Current data interation
 	uint64_t m_subClassCounter;				///< Sub class number counter
@@ -229,6 +228,11 @@ NodeInfo ESOINN::nodeInfo(std::size_t i) const
 std::map<std::size_t, std::vector<std::size_t> > ESOINN::getLinks() const
 {
 	return d->getLinks();
+}
+
+bool ESOINN::wasClassificationStep() const
+{
+	return d->wasClassificationStep();
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
@@ -341,6 +345,11 @@ NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
 	info.distance = n->distance();
 	info.realLabel = n->realLabel();
 	return info;
+}
+
+bool ESOINN::Private::wasClassificationStep() const
+{
+	return m_thisWasClassificationStep;
 }
 
 std::map<std::size_t, std::vector<std::size_t> > ESOINN::Private::getLinks() const
@@ -638,6 +647,8 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	//ESOINNNode* w1 = 0;
 	//ESOINNNode* w2 = 0;
 
+	m_thisWasClassificationStep = false;
+
 	if (w1 == 0 && w2 == 0)
 	{
 		findWinners(w1, w2);
@@ -690,6 +701,7 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	{
 		makeSubClasses();
 		clearNoiseProc();
+		m_thisWasClassificationStep = true;
 	}
 }
 

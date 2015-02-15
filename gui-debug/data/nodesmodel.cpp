@@ -2,6 +2,7 @@
 
 #include <QImage>
 #include <QPixmap>
+#include <QPainter>
 #include <esoinn.h>
 
 NodesModel::NodesModel(QObject *parent)
@@ -21,10 +22,14 @@ QVariant NodesModel::headerData(int section, Qt::Orientation orientation, int ro
 		case 2: return "Density";
 		case 3: return "Win count";
 		case 4: return "Distance";
-		case 5: return "Links";
-		case 6: return "Image";
+		case 5: return "Image";
+		case 6: return "Links";
 		}
 
+	}
+	else if (orientation == Qt::Vertical && role == Qt::DisplayRole)
+	{
+		return section;
 	}
 	return QVariant();
 }
@@ -65,40 +70,35 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
 		case 2: return m_info[r].density;
 		case 3: return m_info[r].winCount;
 		case 4: return m_info[r].distance;
-		case 5:
+
+		}
+	}
+	if (role == Qt::DecorationRole )
+	{
+		if (c == 5)
+			return QPixmap::fromImage(m_img[r]);
+		else if (c == 6)
 		{
-			QString links;
 			auto it = m_links.find(r);
 			if (it == m_links.end())
 				return QVariant();
 
 			const std::vector<std::size_t> & ids = (*it).second;
 
-			for (auto id: ids)
+			QImage result(32 * ids.size(), 32, QImage::Format_RGB32);
+
+			QPainter painter;
+			painter.begin(&result);
+			for (int i = 0; i < ids.size(); ++i)
 			{
-				links.append(QString::number(id)).append(" ");
+				painter.drawImage(32 * i, 0, m_img[ids[i]]);
+
 			}
-
-			return links;
-		}
-		//case 4: return QVari
+			painter.end();
+			return QPixmap::fromImage(result);
 		}
 	}
-//	QImage image(imgFile);
-//			/* some modification to the image, maybe */
-
-//			QPixmap pixmap(imgFile);
-	if (role == Qt::DecorationRole && c == (columns_count -1))
-	{
-//		QImage img(10, 10, QImage::Format_RGB32);
-//		img.setPixel(0, 0, 0x555555);
-
-		return QPixmap::fromImage(m_img[r]);
-		//QPixmap px(img);
-		//return px;   // return QPixmap for decoration role
-	}
-
-	if (role == Qt::SizeHintRole && c == (columns_count -1 ))
+	if (role == Qt::SizeHintRole && (c == 5 || c == 6))
 		return 32;
 
 	return QVariant();
