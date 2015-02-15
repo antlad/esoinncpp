@@ -13,6 +13,7 @@ struct NodeInfo
 	int32_t subClass;
 	int32_t realLabel;
 	double density;
+	float distance;
 	int winCount;
 	std::vector<float> weights;
 };

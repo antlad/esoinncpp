@@ -87,8 +87,14 @@ void MainForm::on_loadPushButton_clicked()
 {
 	try
 	{
-		m_esoinn = std::make_shared<ESOINN>(8 * 8, 0.001f, 1.0f, 50, 200);
-		QString dataPathString = "/home/antlad/111/";
+
+
+		m_esoinn = std::make_shared<ESOINN>(8 * 8, ui->c1LineEdit->text().toFloat(),
+											ui->c2LineEdit->text().toFloat(),
+											ui->maxAgeLineEdit->text().toInt(),
+											ui->iterationLineEdit->text().toInt());
+
+		QString dataPathString = ui->dataFolderLineEdit->text();
 
 
 		//	if (!bf::exists(dataPathString))

@@ -338,6 +338,7 @@ NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
 	info.subClass = n->subClass();
 	info.density = n->density();
 	info.winCount = n->winCount();
+	info.distance = n->distance();
 	info.realLabel = n->realLabel();
 	return info;
 }

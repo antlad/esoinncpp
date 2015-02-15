@@ -3,6 +3,9 @@
 
 #include <QAbstractItemModel>
 
+#include <vector>
+#include <map>
+
 class ESOINN;
 class NodeInfo;
 
@@ -25,6 +28,8 @@ public:
 	void updateModel(const ESOINN & esoinn);
 
 private:
+
+	std::map<std::size_t, std::vector<std::size_t> >  m_links;
 	std::vector<NodeInfo> m_info;
 	std::vector<QImage> m_img;
 };
