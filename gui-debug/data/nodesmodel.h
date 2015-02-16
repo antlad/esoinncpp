@@ -30,6 +30,9 @@ public:
 private:
 
 	std::map<std::size_t, std::vector<std::size_t> >  m_links;
+	std::map<uint32_t, std::vector<NodeInfo *> > m_classes;
+	std::vector<NodeInfo> m_apexs;
+
 	std::vector<NodeInfo> m_info;
 	std::vector<QImage> m_img;
 };

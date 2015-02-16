@@ -124,50 +124,50 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
 	return QVariant();
 }
 
-class QuickUnion
-{
+//class QuickUnion
+//{
 
 
-public:
-QuickUnion(int N)
-{
-	count = N;
-	id.resize(N);
-	sz.resize(N);
-	for (int i = 0; i < N; i++)
-	{
-		id[i] = i;
-		sz[i] = 0;
-	}
-}
+//public:
+//QuickUnion(int N)
+//{
+//	count = N;
+//	id.resize(N);
+//	sz.resize(N);
+//	for (int i = 0; i < N; i++)
+//	{
+//		id[i] = i;
+//		sz[i] = 0;
+//	}
+//}
 
-bool connected(int p, int q)
-{
-	return root(p) == root(q);
-}
+//bool connected(int p, int q)
+//{
+//	return root(p) == root(q);
+//}
 
-void connect(int p, int q)
-{
-	int i = root(p);
-	int j = root(q);
-	if (i == j) return;
-	if (sz[i] < sz[j]) { id[i] = j; sz[j] += sz[i]; }
-	else { id[j] = i; sz[i] += sz[j]; }
-}
+//void connect(int p, int q)
+//{
+//	int i = root(p);
+//	int j = root(q);
+//	if (i == j) return;
+//	if (sz[i] < sz[j]) { id[i] = j; sz[j] += sz[i]; }
+//	else { id[j] = i; sz[i] += sz[j]; }
+//}
 
-private:
-	int root(int i)
-	{
-		while (i != id[i]) {
-		i = id[i];
-		}
-		return i;
-	}
+//private:
+//	int root(int i)
+//	{
+//		while (i != id[i]) {
+//		i = id[i];
+//		}
+//		return i;
+//	}
 
-	std::vector<int> id;
-	std::vector<int> sz;
-	int count;
-};
+//	std::vector<int> id;
+//	std::vector<int> sz;
+//	int count;
+//};
 
 void NodesModel::updateModel(const ESOINN &esoinn)
 {
@@ -178,7 +178,9 @@ void NodesModel::updateModel(const ESOINN &esoinn)
 
 	for (std::size_t i = 0; i < count; ++i)
 	{
-		m_info[i] = esoinn.nodeInfo(i);
+		const NodeInfo & info = esoinn.nodeInfo(i);
+		m_info[i] = info;
+		m_classes[info.subClass].push_back(&m_info[i]);
 
 		QImage img(8, 8, QImage::Format_RGB32);
 
@@ -199,6 +201,17 @@ void NodesModel::updateModel(const ESOINN &esoinn)
 		m_img[i] = img;
 	}
 
+
+	for (auto it = m_classes.begin(); it != m_classes.end(); ++it)
+	{
+		std::vector<std::size_t> nodes = (*it).second;
+		std::sort(nodes.begin(), nodes.end(), [](std::size_t a, std::size_t b)
+		{
+
+		});
+		//uint32_t .first
+		//m_apexs
+	}
 
 	m_links = esoinn.getLinks();
 //	QuickUnion qunion(count);

@@ -98,8 +98,6 @@ int main(int argc, char *argv[])
 			sum += success;
 		}
 		std::cout << "total success avarage " << sum / 100 << "\n";
-
-
 	}
 	catch (const std::exception& e)
 	{
