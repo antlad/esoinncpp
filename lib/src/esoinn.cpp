@@ -398,27 +398,34 @@ float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 		return node->maxDistanceToNeibs();
 
 	size_t size = m_neurons.size();
-	std::vector<float> results;
-	results.resize(size);
+	//std::vector<float> results;
+	//results.resize(size);
 
 	//#pragma omp parallel for
+	float T = std::numeric_limits<float>::max();
 	for (int i = 0; i < size; ++i)
 	{
 		ESOINNNode* n = m_neurons[i].get();
 		if (n != node)
 		{
-			results[i] = node->distanceTo(n);
+			float dist = node->distanceTo(n);
+			if (dist < T)
+				T = dist;
 		}
-		else
-			results[i] = std::numeric_limits<float>::max();
+//		if (n != node)
+//		{
+//			results[i] = node->distanceTo(n);
+//		}
+//		else
+//			results[i] = std::numeric_limits<float>::max();
 	}
 
-	float T = std::numeric_limits<float>::max();
-	for (const float& dist : results)
-	{
-		if (dist < T)
-			T = dist;
-	}
+
+//	for (const float& dist : results)
+//	{
+//		if (dist < T)
+//			T = dist;
+//	}
 
 	return T;
 }
