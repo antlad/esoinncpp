@@ -595,15 +595,16 @@ void ESOINN::Private::clearNoiseProc()
 		return count;
 	};
 
-	while(clean())
-	{
+	clean();
+//	while(clean())
+//	{
 		auto rmn_it = std::remove_if(m_neurons.begin(), m_neurons.end(), [&](ESOINNNodePtr & n)
 		{
 			return todelete.find(n.get()) != todelete.end();
 		});
 
 		m_neurons.erase(rmn_it, m_neurons.end());
-	}
+	//}
 }
 
 double ESOINN::Private::getAlpha(double mean, double maxDensity) const
@@ -705,6 +706,8 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	{
 		w1->addLink(w2);
 		w2->addLink(w1);
+		if (w2->subClass() != w1->subClass())
+			w2->mergeWithNewSubClass(w1->subClass());
 	}
 	else
 	{
