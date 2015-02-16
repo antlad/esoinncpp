@@ -205,7 +205,7 @@ void NodesModel::updateModel(const ESOINN &esoinn)
 	for (auto it = m_classes.begin(); it != m_classes.end(); ++it)
 	{
 		std::vector<std::size_t> nodes = (*it).second;
-		std::sort(nodes.begin(), nodes.end(), [](std::size_t a, std::size_t b)
+		std::sort(nodes.begin(), nodes.end(), [](NodeInfo *, std::size_t b)
 		{
 
 		});
