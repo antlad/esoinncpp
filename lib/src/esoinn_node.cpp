@@ -264,7 +264,20 @@ int32_t ESOINNNode::subClass() const
 	return m_subClass;
 }
 
-void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
+void ESOINNNode::setNeibsSubClass(int32_t subClass)
+{
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		ESOINNNode* node = it->first;
+		if (node->subClass() == -1)
+		{
+			node->m_subClass = subClass;
+			node->setNeibsSubClass(subClass);
+		}
+	}
+}
+
+void ESOINNNode::setNeibsSubClassFromApex(int32_t subClass, ESOINNNode* apex)
 {
 	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 	{
@@ -272,7 +285,7 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass, ESOINNNode* apex)
 		if (node->subClass() == -1 && node->m_density < apex->m_density)
 		{
 			node->m_subClass = subClass;
-			node->setNeibsSubClass(subClass, node);
+			node->setNeibsSubClassFromApex(subClass, node);
 //			if (apex->realLabel() != UNKNOW_LABEL)
 //			{
 				//node->setRealLabel(apex->realLabel());

@@ -79,11 +79,13 @@ public:
 	 */
 	int32_t subClass() const;
 
+	void setNeibsSubClass(int32_t subClass);
+
 	/*! Recursively set up neibs sub class
 	 * \param subClass
 	 * \param apex Apex node
 	 */
-	void setNeibsSubClass(int32_t subClass, ESOINNNode* apex);
+	void setNeibsSubClassFromApex(int32_t subClass, ESOINNNode* apex);
 
 	/*! Set real label of node
 	 * \param realLabel

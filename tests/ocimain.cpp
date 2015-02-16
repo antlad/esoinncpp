@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <random>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <esoinn.h>
@@ -6,6 +8,72 @@
 #include "ocidataset.h"
 
 namespace bf = boost::filesystem;
+
+float doTest(bf::path & dataPath)
+{
+	ESOINN esoinn(8 * 8, 0.001f, 1.0f, 50, 200);
+	bf::path savePath = dataPath / "osi_essoinn.dat";
+	if (bf::exists(savePath))
+	{
+		esoinn.loadFromPath(savePath.string());
+	}
+
+	bf::path ociTrainPath = dataPath / "optdigits.tra";
+	if (!bf::exists(ociTrainPath))
+		std::runtime_error("oci train does not exist");
+
+	OCIDataSet ds(ociTrainPath.string());
+
+
+	struct Data
+	{
+		std::vector<float> data;
+		int digit;
+	};
+
+	std::map<int, Data> trainDataMap;
+	std::vector<int> trainQueue;
+
+
+	int pos = 0;
+	while(ds.getNextDataNormalized(trainDataMap[pos].data, trainDataMap[pos].digit))
+	{
+		trainQueue.push_back(pos++);
+	}
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(trainQueue.begin(), trainQueue.end(), g);
+
+	for (int p : trainQueue)
+	{
+		esoinn.learnNextInput(trainDataMap[p].data, trainDataMap[p].digit);
+	}
+
+	esoinn.classificate();
+	//esoinn.saveApexesToFolder(dataPath.string(), 8, 8);
+
+	bf::path ociTestPath = dataPath / "optdigits.tes";
+	if (!bf::exists(ociTestPath))
+		std::runtime_error("oci test does not exist");
+
+	OCIDataSet ds_test(ociTestPath.string());
+
+	int test_count = 0;
+	int success_count = 0;
+	std::vector<float> data;
+	int digit;
+	while(ds_test.getNextDataNormalized(data, digit))
+	{
+		int32_t out_digit = esoinn.calcInput(data, true);
+		if (out_digit == digit)
+			++success_count;
+		++test_count;
+	}
+
+	float success = double(success_count) / double(test_count) * 100;
+
+	return success;
+}
 
 int main(int argc, char *argv[])
 {
@@ -21,46 +89,16 @@ int main(int argc, char *argv[])
 			std::runtime_error((boost::format("Path %s doesn't exists") % dataPathString).str());
 
 		bf::path dataPath(dataPathString);
-
-		ESOINN esoinn(8 * 8, 0.001f, 1.0f, 50, 200);
-		bf::path savePath = dataPath / "osi_essoinn.dat";
-		if (bf::exists(savePath))
+		double sum = 0;
+		for (int i = 0; i < 100; ++i)
 		{
-			esoinn.loadFromPath(savePath.string());
+			float success = doTest(dataPath);
+			std::cout << "iteration " << i << " success " << success << "\n";
+			std::cout.flush();
+			sum += success;
 		}
+		std::cout << "total success avarage " << sum / 100 << "\n";
 
-		bf::path ociTrainPath = dataPath / "optdigits.tra";
-		if (!bf::exists(ociTrainPath))
-			std::runtime_error("oci train does not exist");
-
-		OCIDataSet ds(ociTrainPath.string());
-
-		std::vector<float> data;
-		int digit;
-
-		while(ds.getNextDataNormalized(data, digit))
-		{
-			esoinn.learnNextInput(data, digit);
-		}
-		esoinn.classificate();
-		esoinn.saveApexesToFolder(dataPathString, 8, 8);
-
-		bf::path ociTestPath = dataPath / "optdigits.tes";
-		if (!bf::exists(ociTestPath))
-			std::runtime_error("oci test does not exist");
-
-		OCIDataSet ds_test(ociTestPath.string());
-
-		int test_count = 0;
-		int success_count = 0;
-		while(ds_test.getNextDataNormalized(data, digit))
-		{
-			int32_t out_digit = esoinn.calcInput(data, true);
-			if (out_digit == digit)
-				++success_count;
-			++test_count;
-		}
-		std::cout << "success rait " << double(success_count) / double(test_count) * 100 << "\n";
 
 	}
 	catch (const std::exception& e)

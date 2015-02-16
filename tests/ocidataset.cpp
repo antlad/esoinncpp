@@ -30,12 +30,12 @@ bool OCIDataSet::getNextDataNormalized(std::vector<float> &rvData, int &rvDigit)
 		if (m_buf[i] == ',')
 		{
 			if (digitIndex == 0 || digitIndex > 2)
-				std::runtime_error("invalid data");
+				throw std::runtime_error("invalid data");
 
 			if (digitIndex == 1)
-                rvData[dataIndex++] = float((digit[0] - 48))/16 ;
+				rvData[dataIndex++] = float((digit[0] - 48))/16 ;
 			else
-                rvData[dataIndex++] = float((digit[0] - 48) * 10 + (digit[1] - 48))/16;
+				rvData[dataIndex++] = float((digit[0] - 48) * 10 + (digit[1] - 48))/16;
 
 			digit[0] = '0';
 			digit[1] = '0';

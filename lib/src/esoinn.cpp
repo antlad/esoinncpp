@@ -253,6 +253,21 @@ void ESOINN::Private::classificate()
 {
 	makeSubClasses();
 	clearNoiseProc();
+
+	for (ESOINNNodePtr& n : m_neurons)
+	{
+		n->setSubClass(-1);
+	}
+	int32_t subClassCount = 0;
+
+	for (ESOINNNodePtr& n : m_neurons)
+	{
+		if (n->subClass() == -1)
+		{
+			n->setSubClass(++subClassCount);
+			n->setNeibsSubClass(subClassCount);
+		}
+	}
 }
 
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
@@ -459,7 +474,7 @@ void ESOINN::Private::makeSubClasses()
 		if (n->subClass() == -1)
 		{
 			n->setSubClass(++subClassCount);
-			n->setNeibsSubClass(subClassCount, n.get());
+			n->setNeibsSubClassFromApex(subClassCount, n.get());
 		}
 	}
 
@@ -555,7 +570,7 @@ bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 	double maxB = maxSubClassDensity(B);
 	double alphaB = getAlpha(meanB, maxB);
 
-	if (winDensityMin > maxA * alphaA && winDensityMin > maxB * alphaB)
+	if (winDensityMin > maxA * alphaA || winDensityMin > maxB * alphaB)
 		return true;
 
 	return false;
@@ -565,46 +580,35 @@ void ESOINN::Private::clearNoiseProc()
 {
 	//check to delete noise
 	std::set<ESOINNNode*> todelete;
-	auto clean = [&]() -> int
+
+	for (ESOINNNodePtr& n : m_neurons)
 	{
-		int count = 0;
-		for (ESOINNNodePtr& n : m_neurons)
+		double mean = subClassDensityMean(n->subClass());
+		if (n->linksCount() == 2 &&
+				n->density() < mean * m_c1)
 		{
-			double mean = subClassDensityMean(n->subClass());
-			if (n->linksCount() == 2 &&
-					n->density() < mean * m_c1)
-			{
-				n->destroy();
-				todelete.insert(n.get());
-				++count;
-			}
-			else if (n->linksCount() == 1 &&
-					 n->density() < mean * m_c2)
-			{
-				n->destroy();
-				todelete.insert(n.get());
-				++count;
-			}
-			else if (n->linksCount() == 0)
-			{
-				n->destroy();///realy need???
-				todelete.insert(n.get());
-				++count;
-			}
+			n->destroy();
+			todelete.insert(n.get());
 		}
-		return count;
-	};
-
-	clean();
-//	while(clean())
-//	{
-		auto rmn_it = std::remove_if(m_neurons.begin(), m_neurons.end(), [&](ESOINNNodePtr & n)
+		else if (n->linksCount() == 1 &&
+				 n->density() < mean * m_c2)
 		{
-			return todelete.find(n.get()) != todelete.end();
-		});
+			n->destroy();
+			todelete.insert(n.get());
+		}
+		else if (n->linksCount() == 0)
+		{
+			todelete.insert(n.get());
+		}
+	}
 
-		m_neurons.erase(rmn_it, m_neurons.end());
-	//}
+	auto rmn_it = std::remove_if(m_neurons.begin(), m_neurons.end(), [&](ESOINNNodePtr & n)
+	{
+		return todelete.find(n.get()) != todelete.end();
+	});
+
+	m_neurons.erase(rmn_it, m_neurons.end());
+
 }
 
 double ESOINN::Private::getAlpha(double mean, double maxDensity) const
