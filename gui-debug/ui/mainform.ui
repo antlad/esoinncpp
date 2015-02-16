@@ -101,6 +101,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="toEndPushButton">
+       <property name="text">
+        <string>To end</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="loadPushButton">
        <property name="text">
         <string>Load</string>

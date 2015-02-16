@@ -2,6 +2,7 @@
 #include "ui_mainform.h"
 
 #include <QDir>
+#include <QDebug>
 #include <QMessageBox>
 
 #include "data/ocidataset.h"
@@ -38,6 +39,7 @@ void MainForm::on_nextStepPushBtn_clicked()
 	if (!hasNext)
 	{
 		m_esoinn->classificate();
+		QMessageBox::information(this, "", "finished");
 	}
 
 	m_model.updateModel(*m_esoinn.get());
@@ -77,10 +79,17 @@ void MainForm::on_loadPushButton_clicked()
 	{
 		QMessageBox::warning(this, "", e.what());
 	}
+}
 
-
-
-
-
-
+void MainForm::on_toEndPushButton_clicked()
+{
+	std::vector<float> data;
+	int digit;
+	while(m_ds->getNextDataNormalized(data, digit))
+	{
+		m_esoinn->learnNextInput(data, digit);
+	}
+	m_esoinn->classificate();
+	QMessageBox::information(this, "", "finished");
+	m_model.updateModel(*m_esoinn.get());
 }

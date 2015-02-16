@@ -94,6 +94,8 @@ public:
 
 	bool wasClassificationStep() const;
 
+	int validateLinks() const;
+
 private:
 	class Private;
 	std::shared_ptr<Private> d; ///< Private part of class

@@ -197,6 +197,8 @@ public:
 
 	uint32_t winCount() const;
 
+	int validateLinks() const;
+
 private:
 	void fill(std::set<const ESOINNNode*> & neibs,
 			  const std::map<ESOINNNode *, uint16_t> &links) const;

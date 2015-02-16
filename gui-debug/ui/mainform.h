@@ -28,6 +28,8 @@ private slots:
 
 	void on_loadPushButton_clicked();
 
+	void on_toEndPushButton_clicked();
+
 private:
 	Ui::MainForm *ui;
 	QSortFilterProxyModel m_proxyModel;

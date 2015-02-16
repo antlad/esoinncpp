@@ -1,5 +1,6 @@
 #include "nodesmodel.h"
 
+#include <QDebug>
 #include <QImage>
 #include <QPixmap>
 #include <QPainter>
@@ -9,7 +10,7 @@ NodesModel::NodesModel(QObject *parent)
 	: QAbstractItemModel(parent)
 {
 }
-const int columns_count = 7;
+const int columns_count = 8;
 
 QVariant NodesModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -24,6 +25,7 @@ QVariant NodesModel::headerData(int section, Qt::Orientation orientation, int ro
 		case 4: return "Distance";
 		case 5: return "Image";
 		case 6: return "Links";
+		case 7: return "Links ids";
 		}
 
 	}
@@ -70,6 +72,22 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
 		case 2: return m_info[r].density;
 		case 3: return m_info[r].winCount;
 		case 4: return m_info[r].distance;
+		case 7:
+		{
+
+			auto it = m_links.find(r);
+			if (it == m_links.end())
+				return QVariant();
+
+			QString result;
+			const std::vector<std::size_t> & ids = (*it).second;
+
+			for (auto id : ids)
+			{
+				result.append(QString::number(id)).append(' ');
+			}
+			return result;
+		}
 
 		}
 	}
@@ -181,17 +199,23 @@ void NodesModel::updateModel(const ESOINN &esoinn)
 		m_img[i] = img;
 	}
 
+
 	m_links = esoinn.getLinks();
 //	QuickUnion qunion(count);
-//	for (auto it = links.begin(); it != links.end(); ++it)
+//	int fails = 0;
+//	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 //	{
 //		std::size_t id = (*it).first;
 //		const std::vector<std::size_t> & connections = (*it).second;
+
 //		for (std::size_t d : connections)
 //		{
-//			qunion.connect(id, d);
+//			auto nit = std::find(m_links[d].begin(), m_links[d].end(), id);
+//			if (nit == m_links[d].end())
+//				++fails;
+//			//qunion.connect(id, d);
 //		}
 //	}
-
+//	qDebug() << "fails " << fails;
 	endResetModel();
 }

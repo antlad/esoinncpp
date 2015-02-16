@@ -426,6 +426,18 @@ uint32_t ESOINNNode::winCount() const
 	return m_winCount;
 }
 
+int ESOINNNode::validateLinks() const
+{
+	int fails = 0;
+	for (auto it = m_links.begin(); it != m_links.end(); ++it)
+	{
+		const ESOINNNode* node = it->first;
+		auto nit = node->m_links.find(const_cast<ESOINNNode*>(this));
+		if (nit == node->m_links.end())
+			++fails;
+	}
+	return fails;
+}
 
 void ESOINNNode::loadFromStream(std::istream & fs)
 {
