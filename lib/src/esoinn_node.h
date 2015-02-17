@@ -57,7 +57,7 @@ public:
 	 * \param n Other node
 	 * \return Distance
 	 */
-	float distanceTo(ESOINNNode* n) const;
+	float distanceTo(const ESOINNNode *n) const;
 
 	/*! Return max distance to neibours
 	 * \return Max distance to neibours

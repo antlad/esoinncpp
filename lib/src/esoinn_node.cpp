@@ -25,9 +25,10 @@ static float vectorDistance(const std::vector<float>& x, const std::vector<float
 	double dist = 0;
 	for (size_t i = 0; i < size; ++i, ++xP, ++yP)
 	{
-		dist += fabs(*xP - *yP);
+		dist += (*xP - *yP) * (*xP - *yP);
 	}
-	return dist;
+
+	return sqrt(dist);
 }
 
 }
@@ -214,7 +215,7 @@ std::size_t ESOINNNode::linksCount() const
 	return m_links.size();
 }
 
-float ESOINNNode::distanceTo(ESOINNNode* n) const
+float ESOINNNode::distanceTo(const ESOINNNode* n) const
 {
 	return vectorDistance(m_weights, n->m_weights);
 }
@@ -315,7 +316,7 @@ void ESOINNNode::updateDensity(float meanDist)
 	m_s += 1.0 / ((1.0 + meanDist) * (1.0 + meanDist));
 	assert(!std::isnan(m_density));
 	//assert(m_density != 0);
-	m_density = m_s / m_winCount;
+	m_density = m_s / double(m_winCount);
 	assert(!std::isinf(m_density));
 	assert(!std::isnan(m_density));
 }

@@ -79,6 +79,8 @@ public:
 	int validateLinks() const;
 private:
 
+	double meanDistanceToAll(const ESOINNNode *node) const;
+
 	/*! Part of learning process
 	 * \param x Input vector
 	 * \param realLabel Real label
@@ -112,13 +114,6 @@ private:
 	 * \return Need connect
 	 */
 	bool needConnectionCheck(ESOINNNode* w1, ESOINNNode* w2) const;
-
-	/*! Calculate and return sum density of sub class
-	 * \param subClass Sub class
-	 * \param rvCountCount of neurons with this sub class
-	 * \return Sum of density
-	 */
-	double subClassDensitySum(int64_t subClass, size_t* rvCount) const;
 
 	/*! Calculate and return mean subclass density
 	 * \param subClass Sub class
@@ -406,6 +401,20 @@ int ESOINN::Private::validateLinks() const
 	return fails;
 }
 
+double ESOINN::Private::meanDistanceToAll(const ESOINNNode *node) const
+{
+	double mean = 0;
+	int count = 0;
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		if (n.get() == node)
+			continue;
+		mean += n->distanceTo(node);
+		++ count;
+	}
+	return mean / count;
+}
+
 
 float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 {
@@ -427,20 +436,7 @@ float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 			if (dist < minDist)
 				minDist = dist;
 		}
-//		if (n != node)
-//		{
-//			results[i] = node->distanceTo(n);
-//		}
-//		else
-//			results[i] = std::numeric_limits<float>::max();
 	}
-
-
-//	for (const float& dist : results)
-//	{
-//		if (dist < T)
-//			T = dist;
-//	}
 
 	return minDist;
 }
@@ -528,7 +524,7 @@ bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 	}
 }
 
-double ESOINN::Private::subClassDensitySum(int64_t subClass, size_t *rvCount) const
+double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 {
 	double densitySum = 0;
 	size_t count = 0;
@@ -540,18 +536,7 @@ double ESOINN::Private::subClassDensitySum(int64_t subClass, size_t *rvCount) co
 			++count;
 		}
 	}
-	if (rvCount)
-		*rvCount = count;
-	return densitySum;
-}
-
-double ESOINN::Private::subClassDensityMean(int64_t subClass) const
-{
-	size_t count = 0;
-	double meanDensity = subClassDensitySum(subClass, &count);
-	if (count)
-		return meanDensity /= count;
-	else return 0;
+	return densitySum / count;
 }
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
@@ -719,17 +704,9 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 		w2->removeLink(w1);
 	}
 
-	//Increment signals count
-	//Update density
-	//double d = 0; ;
-//	for (const ESOINNNodePtr& n : m_neurons)
-//	{
-//		d += w1->distanceTo(n.get());
-//	}
-//	d /= m_neurons.size();
-
 	w1->incrementWinCount();
-	w1->updateDensity(w1->meanDistanceToNeibs());
+	//w1->updateDensity(w1->meanDistanceToNeibs());
+	w1->updateDensity(meanDistanceToAll(w1));
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());

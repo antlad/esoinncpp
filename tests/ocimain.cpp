@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <random>
+#include <set>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <esoinn.h>
@@ -70,10 +71,13 @@ float doTest(bf::path & dataPath)
 		++test_count;
 	}
 	std::size_t size = esoinn.size();
+	std::set<int32_t> subClasses;
 	for (std::size_t i = 0; i < size; ++i)
 	{
-
+		const NodeInfo & info = esoinn.nodeInfo(i);
+		subClasses.insert(info.subClass);
 	}
+	std::cout << "sub class count " << subClasses.size() << "\n";
 
 	float success = double(success_count) / double(test_count) * 100;
 
