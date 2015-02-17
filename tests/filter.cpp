@@ -1,5 +1,8 @@
-#include <png++/png.hpp>
 #include <math.h>
+#include <string>
+#include <stdexcept>
+
+#include <png++/png.hpp>
 
 #include "filter.h"
 

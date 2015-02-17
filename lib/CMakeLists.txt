@@ -21,6 +21,8 @@ option(PNG_EXPORT_SUPPORT "Build with png export support" OFF)
 if(PNG_EXPORT_SUPPORT)
     find_package(PNG REQUIRED)
     find_package(Boost COMPONENTS REQUIRED filesystem system)
+	set(PNGPLUSPLUS_PATH "" CACHE FILEPATH "Path to png++ include")
+	include_directories(${PNGPLUSPLUS_PATH})
     include_directories(${Boost_INCLUDE_DIRS})
     add_definitions(-DBUILD_WITH_PNG_EXPORT_SUPPORT)
     target_link_libraries(${PROJECT_NAME} ${PNG_LIBRARY} ${Boost_LIBRARIES})
@@ -31,6 +33,9 @@ add_definitions(-DESOINN_EXPORT_DLL)
 if (NOT MSVC)
     add_definitions(-std=c++11)
 endif()
+
+
+
 
 include_directories(include/)
 
