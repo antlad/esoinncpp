@@ -22,13 +22,12 @@ static float vectorDistance(const std::vector<float>& x, const std::vector<float
 	size_t size = x.size();
 	const float* xP = x.data();
 	const float* yP = y.data();
-	float dist = 0;
+	double dist = 0;
 	for (size_t i = 0; i < size; ++i, ++xP, ++yP)
 	{
-		float a = *xP - *yP;
-		dist += a * a;
+		dist += fabs(*xP - *yP);
 	}
-	return sqrt(dist);
+	return dist;
 }
 
 }

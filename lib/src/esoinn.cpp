@@ -417,15 +417,15 @@ float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 	//results.resize(size);
 
 	//#pragma omp parallel for
-	float T = std::numeric_limits<float>::max();
+	float minDist = std::numeric_limits<float>::max();
 	for (int i = 0; i < size; ++i)
 	{
 		ESOINNNode* n = m_neurons[i].get();
 		if (n != node)
 		{
 			float dist = node->distanceTo(n);
-			if (dist < T)
-				T = dist;
+			if (dist < minDist)
+				minDist = dist;
 		}
 //		if (n != node)
 //		{
@@ -442,7 +442,7 @@ float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
 //			T = dist;
 //	}
 
-	return T;
+	return minDist;
 }
 
 void ESOINN::Private::procInput(const std::vector<float> &x) const
@@ -710,8 +710,8 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	{
 		w1->addLink(w2);
 		w2->addLink(w1);
-		if (w2->subClass() != w1->subClass())
-			w2->mergeWithNewSubClass(w1->subClass());
+//		if (w2->subClass() != w1->subClass())
+//			w2->mergeWithNewSubClass(w1->subClass());
 	}
 	else
 	{
