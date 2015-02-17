@@ -202,16 +202,16 @@ void NodesModel::updateModel(const ESOINN &esoinn)
 	}
 
 
-	for (auto it = m_classes.begin(); it != m_classes.end(); ++it)
-	{
-		std::vector<std::size_t> nodes = (*it).second;
-		std::sort(nodes.begin(), nodes.end(), [](NodeInfo *, std::size_t b)
-		{
+//	for (auto it = m_classes.begin(); it != m_classes.end(); ++it)
+//	{
+//		std::vector<std::size_t> nodes = (*it).second;
+//		std::sort(nodes.begin(), nodes.end(), [](NodeInfo *, std::size_t b)
+//		{
 
-		});
-		//uint32_t .first
-		//m_apexs
-	}
+//		});
+//		//uint32_t .first
+//		//m_apexs
+//	}
 
 	m_links = esoinn.getLinks();
 //	QuickUnion qunion(count);

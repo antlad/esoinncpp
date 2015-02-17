@@ -69,6 +69,11 @@ float doTest(bf::path & dataPath)
 			++success_count;
 		++test_count;
 	}
+	std::size_t size = esoinn.size();
+	for (std::size_t i = 0; i < size; ++i)
+	{
+
+	}
 
 	float success = double(success_count) / double(test_count) * 100;
 
