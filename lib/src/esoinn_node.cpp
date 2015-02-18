@@ -107,10 +107,8 @@ void ESOINNNode::splitNoise()
 		ESOINNNode* node = it->first;
 		assert(node);
 		assert(node->m_subClass != UNKNOW_LABEL);
-		if (node->m_subClass != m_subClass/* ||
-				(node->m_realLabel != m_realLabel &&
-				 node->m_realLabel != UNKNOW_LABEL &&
-				 m_realLabel != UNKNOW_LABEL)*/)
+		if (node->m_subClass != m_subClass ||
+				(node->m_realLabel != m_realLabel))
 		{
 			node->removeLink(this);
 			m_links.erase(it++);
