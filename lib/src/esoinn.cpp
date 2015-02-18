@@ -359,7 +359,7 @@ void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows
 
 NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
 {
-	if (i < 0 || i > m_neurons.size())
+	if (i > m_neurons.size())
 		throw std::runtime_error("Invalid node number");
 
 	NodeInfo info;
@@ -443,7 +443,7 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	//Proc new input vector
 	std::size_t size = m_neurons.size();
 	const std::vector<ESOINNNodePtr> & n = m_neurons;
-	//#pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0 ; i < size; ++i)
 	{
 		n[i]->procInput(x);
