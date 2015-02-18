@@ -12,7 +12,7 @@ namespace bf = boost::filesystem;
 
 float doTest(bf::path & dataPath)
 {
-	ESOINN esoinn(8 * 8, 0.001f, 1.0f, 50, 200);
+	ESOINN esoinn(8 * 8, 0.001f, 0.9f, 50, 200);
 	bf::path savePath = dataPath / "osi_essoinn.dat";
 	if (bf::exists(savePath))
 	{
@@ -64,7 +64,7 @@ float doTest(bf::path & dataPath)
 	int digit;
 	while(ds_test.getNextDataNormalized(data, digit))
 	{
-		int32_t out_digit = esoinn.calcInput(data, true);
+		int32_t out_digit = esoinn.calcInput(data, false);
 		if (out_digit == digit)
 			++success_count;
 		++test_count;
