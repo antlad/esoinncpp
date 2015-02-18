@@ -19,19 +19,19 @@ add_library(${PROJECT_NAME} ${LIB_TYPE} ${ESOINN_SRC} ${INCLUDE_LIST} ${CMakeCon
 option(PNG_EXPORT_SUPPORT "Build with png export support" OFF)
 
 if(PNG_EXPORT_SUPPORT)
-    find_package(PNG REQUIRED)
-    find_package(Boost COMPONENTS REQUIRED filesystem system)
+	find_package(PNG REQUIRED)
+	find_package(Boost COMPONENTS REQUIRED filesystem system)
 	set(PNGPLUSPLUS_PATH "" CACHE FILEPATH "Path to png++ include")
 	include_directories(${PNGPLUSPLUS_PATH})
-    include_directories(${Boost_INCLUDE_DIRS})
-    add_definitions(-DBUILD_WITH_PNG_EXPORT_SUPPORT)
-    target_link_libraries(${PROJECT_NAME} ${PNG_LIBRARY} ${Boost_LIBRARIES})
+	include_directories(${Boost_INCLUDE_DIRS})
+	add_definitions(-DBUILD_WITH_PNG_EXPORT_SUPPORT)
+	target_link_libraries(${PROJECT_NAME} ${PNG_LIBRARY} ${Boost_LIBRARIES})
 endif()
 
 add_definitions(-DESOINN_EXPORT_DLL)
 
 if (NOT MSVC)
-    add_definitions(-std=c++11)
+	add_definitions(-std=c++11)
 endif()
 
 
@@ -39,10 +39,14 @@ endif()
 
 include_directories(include/)
 
-find_package(OpenMP)
-if (OPENMP_FOUND)
-	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+option(OPENMP_SUPPORT "Build with OpenMP support" ON)
+
+if(OPENMP_SUPPORT)
+	find_package(OpenMP)
+	if (OPENMP_FOUND)
+		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+		set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	endif()
 endif()
 
 install(FILES ${INCLUDE_LIST} DESTINATION include/${PROJECT_NAME})

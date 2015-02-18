@@ -70,15 +70,26 @@ public:
 	 */
 	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
 
+	/*! Get node info
+	 * \param i node index
+	 * \return Node info
+	 */
 	NodeInfo nodeInfo(std::size_t i) const;
 
+	/*! Classification step */
 	bool wasClassificationStep() const;
 
+	/*! Get links of nodes
+	 * \return Links
+	 */
 	std::map<std::size_t, std::vector<std::size_t> > getLinks() const;
 
-	int validateLinks() const;
 private:
 
+	/*! Mean distance to all nodes from node
+	 * \param node Node to calculate distance
+	 * \return mean distance
+	 */
 	double meanDistanceToAll(const ESOINNNode *node) const;
 
 	/*! Part of learning process
@@ -97,6 +108,10 @@ private:
 	 * \param x Input vector
 	 */
 	void procInput(const std::vector<float>& x) const;
+
+	/*! Split connection of over
+	 */
+	void splitSubClasses();
 
 	/*! Make sub classes process
 	 */
@@ -232,11 +247,6 @@ bool ESOINN::wasClassificationStep() const
 	return d->wasClassificationStep();
 }
 
-int ESOINN::validateLinks() const
-{
-	return d->validateLinks();
-}
-
 #ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
 void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
 {
@@ -246,7 +256,6 @@ void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int col
 
 void ESOINN::Private::classificate()
 {
-	makeSubClasses();
 	clearNoiseProc();
 
 	for (ESOINNNodePtr& n : m_neurons)
@@ -391,16 +400,6 @@ std::map<std::size_t, std::vector<std::size_t> > ESOINN::Private::getLinks() con
 	return result;
 }
 
-int ESOINN::Private::validateLinks() const
-{
-	int fails = 0;
-	for (const ESOINNNodePtr & n : m_neurons)
-	{
-		fails += n->validateLinks();
-	}
-	return fails;
-}
-
 double ESOINN::Private::meanDistanceToAll(const ESOINNNode *node) const
 {
 	double mean = 0;
@@ -451,6 +450,32 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	}
 }
 
+void ESOINN::Private::splitSubClasses()
+{
+	for (ESOINNNodePtr& nPtr : m_neurons)
+	{
+		const std::vector<ESOINNNode*>& overlaped = nPtr->overlapedList();
+		if (!overlaped.empty())
+		{
+			for (ESOINNNode* node : overlaped)
+			{
+				if (node->subClass() == nPtr->subClass())
+					continue;
+
+				if (needMergeSubClassCheck(nPtr.get(), node))
+				{
+					node->mergeWithNewSubClass(nPtr->subClass());
+				}
+				else
+				{
+					node->removeLink(nPtr.get());
+					nPtr->removeLink(node);
+				}
+			}
+		}
+	}
+}
+
 void ESOINN::Private::makeSubClasses()
 {
 	for (ESOINNNodePtr& n : m_neurons)
@@ -472,32 +497,6 @@ void ESOINN::Private::makeSubClasses()
 		}
 	}
 
-	for (ESOINNNodePtr& nPtr : m_neurons)
-	{
-		const std::vector<ESOINNNode*>& overlaped = nPtr->overlapedList();
-		if (!overlaped.empty())
-		{
-			for (ESOINNNode* node : overlaped)
-			{
-				if (node->subClass() == nPtr->subClass())
-					continue;
-
-				if (needMergeSubClassCheck(nPtr.get(), node))
-				{
-					node->mergeWithNewSubClass(nPtr->subClass());
-				}
-				else
-				{
-					//???
-					node->removeLink(nPtr.get());
-					nPtr->removeLink(node);
-				}
-			}
-		}
-	}
-
-//	for (ESOINNNodePtr& n : m_neurons)
-//		n->splitNoise();
 }
 
 double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
@@ -696,8 +695,6 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	{
 		w1->addLink(w2);
 		w2->addLink(w1);
-//		if (w2->subClass() != w1->subClass())
-//			w2->mergeWithNewSubClass(w1->subClass());
 	}
 	else
 	{
@@ -720,6 +717,7 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	if (m_iteration % m_iterationThreshold == 0)
 	{
 		makeSubClasses();
+		splitSubClasses();
 		clearNoiseProc();
 		m_thisWasClassificationStep = true;
 	}

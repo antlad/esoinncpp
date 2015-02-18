@@ -51,7 +51,6 @@ float doTest(bf::path & dataPath)
 	}
 
 	esoinn.classificate();
-	//esoinn.saveApexesToFolder(dataPath.string(), 8, 8);
 
 	bf::path ociTestPath = dataPath / "optdigits.tes";
 	if (!bf::exists(ociTestPath))
@@ -70,14 +69,8 @@ float doTest(bf::path & dataPath)
 			++success_count;
 		++test_count;
 	}
-	std::size_t size = esoinn.size();
-	std::set<int32_t> subClasses;
-	for (std::size_t i = 0; i < size; ++i)
-	{
-		const NodeInfo & info = esoinn.nodeInfo(i);
-		subClasses.insert(info.subClass);
-	}
-	std::cout << "sub class count " << subClasses.size() << "\n";
+
+	std::cout << "sub class count " <<  esoinn.subClassesCount() << "\n";
 
 	float success = double(success_count) / double(test_count) * 100;
 

@@ -8,6 +8,8 @@
 
 #include "esoinn_export.h"
 
+/*! Node info
+ */
 struct NodeInfo
 {
 	int32_t subClass;
@@ -74,6 +76,10 @@ public:
 	 */
 	std::size_t subClassesCount() const;
 
+	/*! Get node info
+	 * \param i nodei index
+	 * \return Node info
+	 */
 	NodeInfo nodeInfo(std::size_t i) const;
 
 	/*! Get connections
@@ -91,9 +97,12 @@ public:
 	void saveApexesToFolder(const std::string & folderPath, int rows, int cols) const;
 #endif
 
+	/*! Just debuging function
+	 * \return
+	 * - true - classification step
+	 * - false - not
+	 */
 	bool wasClassificationStep() const;
-
-	int validateLinks() const;
 
 private:
 	class Private;
