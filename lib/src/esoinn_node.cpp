@@ -106,7 +106,7 @@ void ESOINNNode::splitNoise()
 	{
 		ESOINNNode* node = it->first;
 		assert(node);
-		assert(node->m_subClass != -1);
+		assert(node->m_subClass != UNKNOW_LABEL);
 		if (node->m_subClass != m_subClass/* ||
 				(node->m_realLabel != m_realLabel &&
 				 node->m_realLabel != UNKNOW_LABEL &&
@@ -134,7 +134,7 @@ ESOINNNode::ESOINNNode(const std::vector<float>& weights, uint64_t id)
 	: m_dist(0)
 	, m_s(0)
 	, m_density(0)
-	, m_subClass(-1)
+	, m_subClass(UNKNOW_LABEL)
 	, m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(id)
@@ -146,7 +146,7 @@ ESOINNNode::ESOINNNode()
 	: m_dist(0)
 	, m_s(0)
 	, m_density(0)
-	, m_subClass(-1)
+	, m_subClass(UNKNOW_LABEL)
 	, m_realLabel(UNKNOW_LABEL)
 	, m_winCount(0)
 	, m_id(0)
@@ -269,7 +269,7 @@ void ESOINNNode::setNeibsSubClass(int32_t subClass)
 	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 	{
 		ESOINNNode* node = it->first;
-		if (node->subClass() == -1)
+		if (node->subClass() == UNKNOW_LABEL)
 		{
 			node->m_subClass = subClass;
 			node->setNeibsSubClass(subClass);
@@ -282,7 +282,7 @@ void ESOINNNode::setNeibsSubClassFromApex(int32_t subClass, ESOINNNode* apex)
 	for (auto it = m_links.begin(); it != m_links.end(); ++it)
 	{
 		ESOINNNode* node = it->first;
-		if (node->subClass() == -1 && node->m_density < apex->m_density)
+		if (node->subClass() == UNKNOW_LABEL && node->m_density < apex->m_density)
 		{
 			node->m_subClass = subClass;
 			node->setNeibsSubClassFromApex(subClass, node);

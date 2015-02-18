@@ -91,7 +91,6 @@ public:
 	void saveApexesToFolder(const std::string & folderPath, int rows, int cols) const;
 #endif
 
-
 	bool wasClassificationStep() const;
 
 	int validateLinks() const;
