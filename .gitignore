@@ -28,3 +28,8 @@
 *.app
 
 CMakeLists.txt.user
+*.includes
+*.creator
+*.config
+*.files
+*.creator.user

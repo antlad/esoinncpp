@@ -12,6 +12,12 @@
 #include "esoinn_node.h"
 #include "utils.h"
 
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+namespace bf = boost::filesystem;
+#endif
+
 /*! Esoinn private class
  */
 class ESOINN::Private
@@ -37,8 +43,8 @@ public:
 	// Returning count of Esoinn nodes
 	size_t size() const;
 
-    // Return sublasses count
-    size_t subClassCount() const;
+	// Return sublasses count
+	size_t subClassCount() const;
 
 	// Loading Esoinn map from file
 	void loadFromPath(const std::string& abthPath);
@@ -51,32 +57,61 @@ public:
 						int32_t realLabel);
 
 	// Simply calc vector and return prediction of label
-	uint32_t calcInput(const std::vector<float>& x) const;
+	int32_t calcInput(const std::vector<float>& x) const;
 
 	// Simply calc vector and return prediction of label and try to learn
-	uint32_t calcInputAndLearn(const std::vector<float>& x);
+	int32_t calcInputAndLearn(const std::vector<float>& x);
 
 	/*! Start classificate procedure
 	 */
 	void classificate();
+
+	/*! Save main apexes to folder
+	 */
+	void saveApexesToFolder(const std::string &folderPath, int rows, int cols) const;
+
+	/*! Get node info
+	 * \param i node index
+	 * \return Node info
+	 */
+	NodeInfo nodeInfo(std::size_t i) const;
+
+	/*! Classification step */
+	bool wasClassificationStep() const;
+
+	/*! Get links of nodes
+	 * \return Links
+	 */
+	std::map<std::size_t, std::vector<std::size_t> > getLinks() const;
+
 private:
+
+	/*! Mean distance to all nodes from node
+	 * \param node Node to calculate distance
+	 * \return mean distance
+	 */
+	double meanDistanceToAll(const ESOINNNode *node) const;
 
 	/*! Part of learning process
 	 * \param x Input vector
 	 * \param realLabel Real label
 	 */
-	void modeToData(const std::vector<float>& x, int32_t realLabel);
+	void modeToData(const std::vector<float>& x, int32_t realLabel, ESOINNNode *w1 = 0, ESOINNNode *w2 = 0);
 
 	/*! Calculating similarity threshol
 	 * \param node Node to calculate
 	 * \return Returning similarity threshold
 	 */
-	float similarityThreshold(const ESOINNNode* node) const;
+	float similarityThreshold(const ESOINNNode* winner) const;
 
 	/*! Processing new input vector
 	 * \param x Input vector
 	 */
 	void procInput(const std::vector<float>& x) const;
+
+	/*! Split connection of over
+	 */
+	void splitSubClasses();
 
 	/*! Make sub classes process
 	 */
@@ -94,13 +129,6 @@ private:
 	 * \return Need connect
 	 */
 	bool needConnectionCheck(ESOINNNode* w1, ESOINNNode* w2) const;
-
-	/*! Calculate and return sum density of sub class
-	 * \param subClass Sub class
-	 * \param rvCountCount of neurons with this sub class
-	 * \return Sum of density
-	 */
-	double subClassDensitySum(int64_t subClass, size_t* rvCount) const;
 
 	/*! Calculate and return mean subclass density
 	 * \param subClass Sub class
@@ -149,6 +177,7 @@ private:
 	void findWinners(ESOINNNode*& rvW1, ESOINNNode*& rvW2) const;
 
 	std::vector<ESOINNNodePtr> m_neurons;	///< neurons
+	bool m_thisWasClassificationStep;		///<
 	size_t m_inputSize;						///< Input vector size
 	uint64_t m_iteration;					///< Current data interation
 	uint64_t m_subClassCounter;				///< Sub class number counter
@@ -165,7 +194,7 @@ ESOINN::ESOINN(size_t inputSize, float c1, float c2, int maxAge, int iterationTh
 	std::srand((unsigned int)std::time(0));
 }
 
-int ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
+int32_t ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
 {
 	if (!learnData)
 		return d->calcInput(x);
@@ -173,7 +202,7 @@ int ESOINN::calcInput(const std::vector<float> &x, bool learnData) const
 		return d->calcInputAndLearn(x);
 }
 
-void ESOINN::learnNextInput(const std::vector<float> &x, int realLabel) const
+void ESOINN::learnNextInput(const std::vector<float> &x, int32_t realLabel) const
 {
 	d->learnNextInput(x, realLabel);
 }
@@ -193,51 +222,220 @@ void ESOINN::classificate() const
 	d->classificate();
 }
 
-size_t ESOINN::size() const
+std::size_t ESOINN::size() const
 {
-    return d->size();
+	return d->size();
 }
 
-size_t ESOINN::subClassesCount() const
+std::size_t ESOINN::subClassesCount() const
 {
-    return d->subClassCount();
+	return d->subClassCount();
 }
+
+NodeInfo ESOINN::nodeInfo(std::size_t i) const
+{
+	return d->nodeInfo(i);
+}
+
+std::map<std::size_t, std::vector<std::size_t> > ESOINN::getLinks() const
+{
+	return d->getLinks();
+}
+
+bool ESOINN::wasClassificationStep() const
+{
+	return d->wasClassificationStep();
+}
+
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+void ESOINN::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
+{
+	d->saveApexesToFolder(folderPath, rows, cols);
+}
+#endif
 
 void ESOINN::Private::classificate()
 {
-	makeSubClasses();
 	clearNoiseProc();
+
+	for (ESOINNNodePtr& n : m_neurons)
+	{
+		n->setSubClass(UNKNOW_LABEL);
+	}
+	int32_t subClassCount = 0;
+
+	for (ESOINNNodePtr& n : m_neurons)
+	{
+		if (n->subClass() == UNKNOW_LABEL)
+		{
+			n->setSubClass(++subClassCount);
+			n->setNeibsSubClass(subClassCount);
+		}
+	}
 }
 
-float ESOINN::Private::similarityThreshold(const ESOINNNode *node) const
+#ifdef BUILD_WITH_PNG_EXPORT_SUPPORT
+struct ApexDesc
 {
-	if (node->linksCount())
-		return node->maxDistanceToNeibs();
+	ESOINNNode* apex;
+	std::list<ESOINNNode*> area;
+};
+
+void ESOINN::Private::saveApexesToFolder(const std::string &folderPath, int rows, int cols) const
+{
+	if (folderPath.empty())
+		throw std::invalid_argument("folderPath is empty!");
+	if (!bf::exists(folderPath))
+		throw std::invalid_argument(str(boost::format("folder %1 doesn't exists!") % folderPath));
+
+	std::map<int32_t, ApexDesc> subs;
+
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		auto it = subs.find(n->subClass());
+		if (it == subs.end())
+		{
+			subs[n->subClass()].apex = n.get();
+			continue;
+		}
+		else
+		{
+			ApexDesc & aDesc = (*it).second;
+			if (aDesc.apex->density() < n->density())
+			{
+				ESOINNNode* a = aDesc.apex;
+				aDesc.apex = n.get();
+				aDesc.area.push_back(a);
+			}
+			else
+			{
+				aDesc.area.push_back(n.get());
+			}
+		}
+	}
+
+	bf::path dataFolder(folderPath);
+	dataFolder = dataFolder / bf::path("png");
+	if (bf::exists(dataFolder))
+	{
+		if (!bf::remove_all(dataFolder))
+			throw std::runtime_error("Can't remove png directory!");
+	}
+	if (!bf::create_directory(dataFolder))
+		throw std::runtime_error("Can't create dirrectory for png!");
+
+	for (auto it = subs.begin(); it != subs.end(); ++it)
+	{
+		ApexDesc & aDesc = (*it).second;
+
+		auto saveToPngFunc = [&](const ESOINNNode* n, const bf::path & folder, int i)
+		{
+			std::string f = (boost::format("s_%d_d_%d_i_%d.png")
+							 % n->subClass()
+							 % n->realLabel()
+							 % i).str();
+			n->saveToPng((folder / bf::path(f)).string(), rows, cols);
+		};
+
+		saveToPngFunc(aDesc.apex, dataFolder, 0);
+
+		if (!aDesc.area.empty())
+		{
+			bf::path subFolder((boost::format("s_%d_d_%d")
+								% aDesc.apex->subClass()
+								% aDesc.apex->realLabel()).str());
+			if (!bf::create_directory(dataFolder / subFolder))
+				throw std::runtime_error("Can't create dirrectory for sub class images!");
+			int i = 0;
+			for (const ESOINNNode* n : aDesc.area)
+			{
+				saveToPngFunc(n, dataFolder / subFolder, ++i);
+			}
+		}
+	}
+}
+
+#endif
+
+NodeInfo ESOINN::Private::nodeInfo(std::size_t i) const
+{
+	if (i < 0 || i > m_neurons.size())
+		throw std::runtime_error("Invalid node number");
+
+	NodeInfo info;
+	const ESOINNNodePtr & n = m_neurons[i];
+	info.weights = n->weights();
+	info.subClass = n->subClass();
+	info.density = n->density();
+	info.winCount = n->winCount();
+	info.distance = n->distance();
+	info.realLabel = n->realLabel();
+	return info;
+}
+
+bool ESOINN::Private::wasClassificationStep() const
+{
+	return m_thisWasClassificationStep;
+}
+
+std::map<std::size_t, std::vector<std::size_t> > ESOINN::Private::getLinks() const
+{
+	std::map<uint64_t, std::size_t> idToPos;
+	std::map<std::size_t, std::vector<std::size_t> > result;
+	std::size_t pos = 0;
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		idToPos[n->nodeId()] = pos++;
+	}
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		std::vector<uint64_t> ids = n->idLinks();
+		std::size_t pos = idToPos[n->nodeId()];
+		result[pos].resize(ids.size());
+		for (std::size_t i = 0; i < ids.size(); ++i)
+		{
+			result[pos][i] = idToPos[ids[i]];
+		}
+	}
+	return result;
+}
+
+double ESOINN::Private::meanDistanceToAll(const ESOINNNode *node) const
+{
+	double mean = 0;
+	int count = 0;
+	for (const ESOINNNodePtr & n : m_neurons)
+	{
+		if (n.get() == node)
+			continue;
+		mean += n->distanceTo(node);
+		++ count;
+	}
+	return mean / count;
+}
+
+
+float ESOINN::Private::similarityThreshold(const ESOINNNode *winner) const
+{
+	if (winner->linksCount())
+		return winner->maxDistanceToNeibs();
 
 	size_t size = m_neurons.size();
-	std::vector<float> results;
-	results.resize(size);
 
-	#pragma omp parallel for
+	//#pragma omp parallel for
+	float minDist = std::numeric_limits<float>::max();
 	for (int i = 0; i < size; ++i)
 	{
 		ESOINNNode* n = m_neurons[i].get();
-		if (n != node)
+		if (n != winner)
 		{
-			results[i] = node->distanceTo(n);
+			float dist = winner->distanceTo(n);
+			if (dist < minDist)
+				minDist = dist;
 		}
-		else
-			results[i] = std::numeric_limits<float>::max();
 	}
 
-	float T = std::numeric_limits<float>::max();
-	for (const float& dist : results)
-	{
-		if (dist < T)
-			T = dist;
-	}
-
-	return T;
+	return minDist;
 }
 
 void ESOINN::Private::procInput(const std::vector<float> &x) const
@@ -245,37 +443,15 @@ void ESOINN::Private::procInput(const std::vector<float> &x) const
 	//Proc new input vector
 	std::size_t size = m_neurons.size();
 	const std::vector<ESOINNNodePtr> & n = m_neurons;
-	#pragma omp parallel for
-
+	//#pragma omp parallel for
 	for (int i = 0 ; i < size; ++i)
 	{
 		n[i]->procInput(x);
 	}
-
-
 }
 
-void ESOINN::Private::makeSubClasses()
+void ESOINN::Private::splitSubClasses()
 {
-	for (ESOINNNodePtr& n : m_neurons)
-	{
-		n->setSubClass(-1);
-	}
-	int32_t subClassCount = 0;
-	std::sort(m_neurons.begin(), m_neurons.end(), [](const ESOINNNodePtr & a, const ESOINNNodePtr & b) -> bool
-	{
-		return a->density() > b->density();
-	});
-
-	for (ESOINNNodePtr& n : m_neurons)
-	{
-		if (n->subClass() == -1)
-		{
-			n->setSubClass(++subClassCount);
-			n->setNeibsSubClass(subClassCount, n.get());
-		}
-	}
-
 	for (ESOINNNodePtr& nPtr : m_neurons)
 	{
 		const std::vector<ESOINNNode*>& overlaped = nPtr->overlapedList();
@@ -290,12 +466,37 @@ void ESOINN::Private::makeSubClasses()
 				{
 					node->mergeWithNewSubClass(nPtr->subClass());
 				}
+				else
+				{
+					node->removeLink(nPtr.get());
+					nPtr->removeLink(node);
+				}
 			}
 		}
 	}
+}
+
+void ESOINN::Private::makeSubClasses()
+{
+	for (ESOINNNodePtr& n : m_neurons)
+	{
+		n->setSubClass(UNKNOW_LABEL);
+	}
+	int32_t subClassCount = 0;
+	std::sort(m_neurons.begin(), m_neurons.end(), [](const ESOINNNodePtr & a, const ESOINNNodePtr & b) -> bool
+	{
+		return a->density() > b->density();
+	});
 
 	for (ESOINNNodePtr& n : m_neurons)
-		n->splitNoise();
+	{
+		if (n->subClass() == UNKNOW_LABEL)
+		{
+			n->setSubClass(++subClassCount);
+			n->setNeibsSubClassFromApex(subClassCount, n.get());
+		}
+	}
+
 }
 
 double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
@@ -314,10 +515,10 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-	if (w1->realLabel() != w2->realLabel())
-		return false;
+	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
+		return w1->realLabel() == w2->realLabel();
 
-	if (w1->subClass() == -1 || w2->subClass() == -1) return true;
+	if (w1->subClass() == UNKNOW_LABEL || w2->subClass() == UNKNOW_LABEL) return true;
 	else if (w1->subClass() == w2->subClass()) return true;
 	else
 	{
@@ -326,7 +527,7 @@ bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 	}
 }
 
-double ESOINN::Private::subClassDensitySum(int64_t subClass, size_t *rvCount) const
+double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 {
 	double densitySum = 0;
 	size_t count = 0;
@@ -338,24 +539,13 @@ double ESOINN::Private::subClassDensitySum(int64_t subClass, size_t *rvCount) co
 			++count;
 		}
 	}
-	if (rvCount)
-		*rvCount = count;
-	return densitySum;
-}
-
-double ESOINN::Private::subClassDensityMean(int64_t subClass) const
-{
-	size_t count = 0;
-	double meanDensity = subClassDensitySum(subClass, &count);
-	if (count)
-		return meanDensity /= count;
-	else return 0;
+	return densitySum / count;
 }
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-	if (a->realLabel() != b->realLabel())
-		return false;
+	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
+		return a->realLabel() == b->realLabel();
 
 	int64_t A = a->subClass();
 	double winDensityMin = std::min(a->density(), b->density());
@@ -378,6 +568,7 @@ void ESOINN::Private::clearNoiseProc()
 {
 	//check to delete noise
 	std::set<ESOINNNode*> todelete;
+
 	for (ESOINNNodePtr& n : m_neurons)
 	{
 		double mean = subClassDensityMean(n->subClass());
@@ -395,7 +586,6 @@ void ESOINN::Private::clearNoiseProc()
 		}
 		else if (n->linksCount() == 0)
 		{
-			n->destroy();///realy need???
 			todelete.insert(n.get());
 		}
 	}
@@ -406,6 +596,7 @@ void ESOINN::Private::clearNoiseProc()
 	});
 
 	m_neurons.erase(rmn_it, m_neurons.end());
+
 }
 
 double ESOINN::Private::getAlpha(double mean, double maxDensity) const
@@ -445,8 +636,10 @@ const std::vector<ESOINNNodePtr> &ESOINN::Private::neurons() const
 	return m_neurons;
 }
 
-uint32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
+int32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 {
+	if (m_neurons.size() < 2)
+		std::runtime_error("ESOINN is empty!");
 	procInput(x);
 
 	ESOINNNode* n1 = 0;
@@ -456,8 +649,16 @@ uint32_t ESOINN::Private::calcInput(const std::vector<float> &x) const
 	return n1->realLabel();
 }
 
-uint32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
+int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 {
+	++m_iteration;
+	if (m_neurons.size() < 2)
+	{
+		ESOINNNodePtr n = std::make_shared<ESOINNNode>(x, ++m_id);
+		m_neurons.push_back(n);
+		return UNKNOW_LABEL;
+	}
+
 	procInput(x);
 
 	ESOINNNode* n1 = 0;
@@ -465,20 +666,22 @@ uint32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 
 	findWinners(n1, n2);
 	int r = n1->realLabel();
-	modeToData(x, r);
+	modeToData(x, r, n1, n2);
 	return r;
 }
 
-void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
+void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel, ESOINNNode* w1, ESOINNNode* w2)
 {
-	ESOINNNode* w1 = 0;
-	ESOINNNode* w2 = 0;
+	m_thisWasClassificationStep = false;
 
-	findWinners(w1, w2);
+	if (w1 == 0 && w2 == 0)
+	{
+		findWinners(w1, w2);
+	}
 
 	if (!isWithinThreshold(w1, w2))
 	{
-		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
+		ESOINNNodePtr n = std::make_shared<ESOINNNode>(x, ++m_id);
 		n->setRealLabel(realLabel);
 		m_neurons.push_back(n);
 		return;
@@ -499,17 +702,8 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 		w2->removeLink(w1);
 	}
 
-	//Increment signals count
 	w1->incrementWinCount();
-
-	//Update density
-	float d = 0;
-	for (const ESOINNNodePtr& n : m_neurons)
-	{
-		d += w1->distanceTo(n.get());
-	}
-	d /= m_neurons.size();
-	w1->updateDensity(d);
+	w1->updateDensity(meanDistanceToAll(w1));
 
 	//Adapt weights
 	float E1 = 1 / float(w1->winCount());
@@ -522,16 +716,18 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel)
 	if (m_iteration % m_iterationThreshold == 0)
 	{
 		makeSubClasses();
+		splitSubClasses();
 		clearNoiseProc();
+		m_thisWasClassificationStep = true;
 	}
-	++m_iteration;
 }
 
 void ESOINN::Private::learnNextInput(const std::vector<float> &x, int32_t realLabel)
 {
+	++m_iteration;
 	if (m_neurons.size() < 2)
 	{
-		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
+		ESOINNNodePtr n = std::make_shared<ESOINNNode>(x, ++m_id);
 		n->setRealLabel(realLabel);
 		m_neurons.push_back(n);
 		return;
@@ -611,19 +807,19 @@ void ESOINN::Private::saveToPath(const std::string &abthPath) const
 	}
 }
 
-size_t ESOINN::Private::size() const
+std::size_t ESOINN::Private::size() const
 {
-    return m_neurons.size();
+	return m_neurons.size();
 }
 
-size_t ESOINN::Private::subClassCount() const
+std::size_t ESOINN::Private::subClassCount() const
 {
-    std::set<int32_t> subClasses;
-    for (const ESOINNNodePtr& n : m_neurons)
-    {
-        subClasses.insert(n->subClass());
-    }
-    return subClasses.size();
+	std::set<int32_t> subClasses;
+	for (const ESOINNNodePtr& n : m_neurons)
+	{
+		subClasses.insert(n->subClass());
+	}
+	return subClasses.size();
 }
 
 void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const
@@ -633,7 +829,6 @@ void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const
 	rvW1 = 0;
 	rvW2 = 0;
 
-	//Find winners
 	for (const ESOINNNodePtr& n : m_neurons)
 	{
 		assert(n.get());
@@ -656,4 +851,6 @@ void ESOINN::Private::findWinners(ESOINNNode *&rvW1, ESOINNNode *&rvW2) const
 	}
 	assert(rvW2);
 	assert(rvW1);
+	assert(rvW1 != rvW2);
 }
+
