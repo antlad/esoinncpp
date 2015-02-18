@@ -515,8 +515,8 @@ double ESOINN::Private::maxSubClassDensity(int64_t subClass) const
 
 bool ESOINN::Private::needConnectionCheck(ESOINNNode *w1, ESOINNNode *w2) const
 {
-//	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
-//		return w1->realLabel() == w2->realLabel();
+	if (w1->realLabel() != UNKNOW_LABEL && w2->realLabel() != UNKNOW_LABEL)
+		return w1->realLabel() == w2->realLabel();
 
 	if (w1->subClass() == UNKNOW_LABEL || w2->subClass() == UNKNOW_LABEL) return true;
 	else if (w1->subClass() == w2->subClass()) return true;
@@ -544,8 +544,8 @@ double ESOINN::Private::subClassDensityMean(int64_t subClass) const
 
 bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 {
-//	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
-//		return a->realLabel() == b->realLabel();
+	if (a->realLabel() != UNKNOW_LABEL && b->realLabel() != UNKNOW_LABEL)
+		return a->realLabel() == b->realLabel();
 
 	int64_t A = a->subClass();
 	double winDensityMin = std::min(a->density(), b->density());
@@ -558,7 +558,7 @@ bool ESOINN::Private::needMergeSubClassCheck(ESOINNNode *a, ESOINNNode *b) const
 	double maxB = maxSubClassDensity(B);
 	double alphaB = getAlpha(meanB, maxB);
 
-	if (winDensityMin > maxA * alphaA || winDensityMin > maxB * alphaB)
+	if (winDensityMin > maxA * alphaA && winDensityMin > maxB * alphaB)
 		return true;
 
 	return false;
@@ -654,7 +654,7 @@ int32_t ESOINN::Private::calcInputAndLearn(const std::vector<float> &x)
 	++m_iteration;
 	if (m_neurons.size() < 2)
 	{
-		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
+		ESOINNNodePtr n = std::make_shared<ESOINNNode>(x, ++m_id);
 		m_neurons.push_back(n);
 		return UNKNOW_LABEL;
 	}
@@ -703,7 +703,6 @@ void ESOINN::Private::modeToData(const std::vector<float> &x, int32_t realLabel,
 	}
 
 	w1->incrementWinCount();
-	//w1->updateDensity(w1->meanDistanceToNeibs());
 	w1->updateDensity(meanDistanceToAll(w1));
 
 	//Adapt weights
@@ -728,7 +727,7 @@ void ESOINN::Private::learnNextInput(const std::vector<float> &x, int32_t realLa
 	++m_iteration;
 	if (m_neurons.size() < 2)
 	{
-		ESOINNNodePtr n(new ESOINNNode(x, ++m_id));
+		ESOINNNodePtr n = std::make_shared<ESOINNNode>(x, ++m_id);
 		n->setRealLabel(realLabel);
 		m_neurons.push_back(n);
 		return;
