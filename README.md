@@ -30,7 +30,9 @@ At first run the test program will convert cvs into binary files to gain more sp
 Testing is conducted in three steps: first network will train on data from train.cvs. Then it will run self check and count percentages of failures on train.cvs. At the end network will make prediction on data from  test.cvs, and result file (in Kaggle submission format) will be saved into out.txt.
 
 Update:
+
 New test application with Optical Recognition of Handwritten Digits database (optdigits) (http://www.ics.uci.edu/ ̃mlearn/MLRepository.html) from original paper.
+
 New gui application for debuging step-by-step.
 
 Conclusion:
