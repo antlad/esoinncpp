@@ -84,7 +84,7 @@ bool KaggleParser::getNextData(std::vector<unsigned char> &rvData, int *rvDigit)
 }
 
 bool KaggleParser::getNextDataNormalized(std::vector<float> &rvData,
-										 int *rvDigit)
+		int *rvDigit)
 {
 	bool r = getNextData(m_dataBuf, rvDigit);
 	rvData.resize(m_dataBuf.size());

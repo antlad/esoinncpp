@@ -286,8 +286,8 @@ void ESOINNNode::setNeibsSubClassFromApex(int32_t subClass, ESOINNNode* apex)
 			node->setNeibsSubClassFromApex(subClass, node);
 //			if (apex->realLabel() != UNKNOW_LABEL)
 //			{
-				//node->setRealLabel(apex->realLabel());
-				//assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
+			//node->setRealLabel(apex->realLabel());
+			//assert(node->realLabel() == UNKNOW_LABEL || apex->realLabel() == node->realLabel());
 			//}
 		}
 	}
@@ -403,7 +403,7 @@ void ESOINNNode::saveToPng(const std::string &path, int rows, int cols) const
 //        name += std::to_string(i);
 //        name += ".png";
 
-  //  fnm.append(path);
+	//  fnm.append(path);
 	png::image<png::ga_pixel> image;
 	image.resize(rows, cols);
 

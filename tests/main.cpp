@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
 
 		uint64_t elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>
-							  (end-start).count();
+								   (end-start).count();
 
 		std::cout << "calc done in " << elapsed_seconds << "\n";
 		esoinn.saveToPath(savePath.string());

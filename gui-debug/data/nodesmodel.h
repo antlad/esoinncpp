@@ -10,7 +10,7 @@ class ESOINN;
 class NodeInfo;
 
 class NodesModel
-		: public QAbstractItemModel
+	: public QAbstractItemModel
 {
 	Q_OBJECT
 public:

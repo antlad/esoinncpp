@@ -9,7 +9,8 @@
 
 #include "data/nodesmodel.h"
 
-namespace Ui {
+namespace Ui
+{
 class MainForm;
 }
 

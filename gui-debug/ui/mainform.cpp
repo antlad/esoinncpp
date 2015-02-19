@@ -77,10 +77,6 @@ void MainForm::on_loadPushButton_clicked()
 
 		QString dataPathString = ui->dataFolderLineEdit->text();
 
-
-		//	if (!bf::exists(dataPathString))
-		//		std::runtime_error((boost::format("Path %s doesn't exists") % dataPathString).str());
-
 		QDir dataDir(dataPathString);
 
 		if (!dataDir.exists())
